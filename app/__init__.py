@@ -30,7 +30,7 @@ def create_app():
 
     # 2️⃣ CONFIG
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_default_key')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chronicle_user:q7qfXTJV1pVg4bDyziesAd9t@dpg-d0fnqqadbo4c73als7g0-a.frankfurt-postgres.render.com/chronicle_db'  # default to SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chronicle_user:2xZJzWYoq7qfXTJV1pVg4bDyziesAd9t@dpg-d0fnqqadbo4c73als7g0-a.frankfurt-postgres.render.com/chronicle_db'  # default to SQLite
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # ✅ Enable Jinja auto-reload (TEMPLATES_AUTO_RELOAD)
