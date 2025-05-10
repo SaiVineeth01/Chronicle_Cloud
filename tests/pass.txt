@@ -1,0 +1,13 @@
+admin28:adminpassword123
+or
+admin28@example.com:adminpassword123
+honey:12345
+
+
+admin2@example.com  : 123456
+
+
+notification sent instructions>>
+1) flask run --port=5001
+then
+2)C:\Users\hh\Chronicle_Cloud\tests>python send_notification.py

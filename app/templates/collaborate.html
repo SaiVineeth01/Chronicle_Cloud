@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Collaborate on {{ note.title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <h3>Collaborating on: {{ note.title }}</h3>
+    <textarea id="editor" class="form-control" rows="15">{{ note.content }}</textarea>
+    <hr>
+    <h5>Live Comments</h5>
+    <ul id="comments" class="list-group mb-3"></ul>
+    <div class="input-group">
+        <input type="text" id="commentInput" class="form-control" placeholder="Type your comment...">
+        <button class="btn btn-primary" onclick="sendComment()">Send</button>
+    </div>
+</div>
+
+<script>
+    const socket = io();
+
+    const room = "{{ note.id }}";
+    socket.emit('join', {room: room});
+
+    const editor = document.getElementById('editor');
+    editor.addEventListener('input', () => {
+        socket.emit('edit_note', {
+            room: room,
+            content: editor.value
+        });
+    });
+
+    socket.on('receive_edit', (data) => {
+        editor.value = data.content;
+    });
+
+    function sendComment() {
+        const input = document.getElementById('commentInput');
+        const comment = input.value;
+        if (comment.trim() !== "") {
+            socket.emit('new_comment', {
+                room: room,
+                user: "{{ session['username'] }}",
+                comment: comment
+            });
+            input.value = "";
+        }
+    }
+
+    socket.on('receive_comment', (data) => {
+        const comments = document.getElementById('comments');
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.innerHTML = `<strong>${data.user}:</strong> ${data.comment}`;
+        comments.appendChild(li);
+    });
+</script>
+</body>
+</html>

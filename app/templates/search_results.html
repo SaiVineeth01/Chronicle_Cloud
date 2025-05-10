@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            margin: 20px 0;
+        }
+
+        footer {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #ffffff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        li a {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        li a:hover {
+            text-decoration: underline;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            padding: 10px 15px;
+            margin: 0 5px;
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .pagination a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Search Results</h1>
+        <a href="/">Home</a>
+    </header>
+
+    <main>
+        <h2>Results for: "{{ search_query }}"</h2>
+
+        <ul>
+            {% if results %}
+                {% for result in results %}
+                    <li>
+                        <a href="{{ url_for('notes.view_note', note_id=result.id) }}">
+                            {% set highlighted_title = result.title | replace(search_query, '<span class="highlight">' ~ search_query ~ '</span>') %}
+                            {{ highlighted_title | safe }}
+                        </a>
+                        <p>{{ result.content[:200] }}...</p>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <p>No results found. Try refining your search.</p>
+            {% endif %}
+        </ul>
+
+        {% if results %}
+        <div class="pagination">
+            <a href="{{ url_for('search_results', page=1) }}">First</a>
+            <a href="{{ url_for('search_results', page=prev_page) }}">Previous</a>
+            <a href="{{ url_for('search_results', page=next_page) }}">Next</a>
+            <a href="{{ url_for('search_results', page=total_pages) }}">Last</a>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; ChronicleCloud</p>
+    </footer>
+
+</body>
+</html>

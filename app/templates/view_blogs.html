@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blogs | ChronicleCloud</title>
+    <!-- Favicon and CSS Libraries -->
+    <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+        .search-bar input {
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+        .search-bar input:focus {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            background-color: #fff;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            padding: 20px;
+            position: relative;
+        }
+        .card-header h5 {
+            margin: 0;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-header .category {
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        .date-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #fff;
+            color: #6c5ce7;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .card-body {
+            padding: 20px;
+            font-size: 1rem;
+            min-height: 160px;
+        }
+        .card-body p {
+            text-align: justify; /* Added alignment */
+        }
+        .modal-body p {
+            text-align: justify; /* Added alignment for modal content */
+        }
+        .card-footer {
+            background: #f7f7f7;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+            border: none;
+            padding: 6px 12px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        body.dark-mode .card {
+            background-color: #1e1e1e;
+            color: #ccc;
+        }
+        body.dark-mode .card-header {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+        }
+        body.dark-mode .date-badge {
+            background-color: #333;
+            color: #a29bfe;
+        }
+        body.dark-mode .card-footer {
+            background-color: #2c2c2c;
+            border-top: 1px solid #444;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .page-title h1 {
+            font-weight: 600;
+            font-size: 3rem;
+            color: #3498db;
+        }
+        .page-title p {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Toggle Mode Button -->
+<div class="theme-toggle">
+    <button class="btn btn-outline-dark rounded-pill" id="toggleThemeBtn">
+        <i class="fas fa-moon"></i> Toggle Dark Mode
+    </button>
+</div>
+
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="page-title">
+        <h1 class="fw-bold">📝 My Blogs</h1>
+        <p class="text-muted">Create, browse, and manage your blog posts with ease. Enhance your writing experience.</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show text-center" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Search Bar -->
+    <div class="search-bar mb-4">
+        <input type="text" class="form-control form-control-lg" placeholder="🔍 Search blogs..." onkeyup="searchBlogs(this.value)">
+    </div>
+
+    <!-- View All Blogs -->
+    <div class="row g-4" id="blogsContainer">
+        {% for blog in blogs %}
+            <div class="col-md-6 col-lg-4 blog-item">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5>📝 {{ blog.title }}</h5>
+                        <div class="category">
+                            🗂️ {{ blog.category or 'Uncategorized' }}
+                        </div>
+                        <div class="date-badge">
+                            <i class="fas fa-calendar-alt"></i> {{ blog.created_at.strftime('%Y-%m-%d') if blog.created_at else 'Date N/A' }}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ blog.content[:180] }}...</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#blogModal{{ blog.id }}">
+                            <i class="fas fa-book-open"></i> Read More
+                        </button>
+                        <form action="{{ url_for('blogs.delete_blog', blog_id=blog.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete this blog">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for Full Content -->
+            <div class="modal fade" id="blogModal{{ blog.id }}" tabindex="-1" aria-labelledby="blogModalLabel{{ blog.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="blogModalLabel{{ blog.id }}">📝 {{ blog.title }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Category:</strong> {{ blog.category or 'Uncategorized' }}</p>
+                            <p><strong>Published:</strong> {{ blog.created_at.strftime('%Y-%m-%d') if blog.created_at else 'Date N/A' }}</p>
+                            <hr>
+                            <p>{{ blog.content }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Bootstrap Bundle & Tooltip Init -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    document.getElementById('toggleThemeBtn').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+    });
+
+    function searchBlogs(query) {
+        const blogs = document.querySelectorAll('.blog-item');
+        blogs.forEach(blog => {
+            const text = blog.innerText.toLowerCase();
+            blog.style.display = text.includes(query.toLowerCase()) ? 'block' : 'none';
+        });
+    }
+</script>
+
+</body>
+</html>

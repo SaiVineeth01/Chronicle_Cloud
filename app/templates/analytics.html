@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <!-- Custom CSS with cache-busting -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">📊 Analytics Dashboard</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Statistics List -->
+    <ul class="list-group mb-4">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            📝 Total Notes:
+            <span class="badge bg-primary rounded-pill">{{ data.total_notes }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            📰 Total Blogs:
+            <span class="badge bg-secondary rounded-pill">{{ data.total_blogs }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            👥 Active Users:
+            <span class="badge bg-success rounded-pill">{{ data.active_users }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            👮 Total Admins:
+            <span class="badge bg-danger rounded-pill">{{ data.total_admins }}</span>
+        </li>
+    </ul>
+
+    <!-- Blogs by Category -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">🗂️ Blogs by Category</h5>
+        </div>
+        <div class="card-body">
+            {% if data.blogs_by_category %}
+                <ul class="list-group">
+                    {% for category, count in data.blogs_by_category %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ category }}
+                            <span class="badge bg-info rounded-pill">{{ count }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No blog data available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Most Recent Blog Post -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">🕒 Most Recent Blog Post</h5>
+        </div>
+        <div class="card-body">
+            {% if data.recent_blog %}
+                <p><strong>Title:</strong> {{ data.recent_blog.title }}</p>
+                <p><strong>Category:</strong> {{ data.recent_blog.category }}</p>
+                <p><strong>Created At:</strong> {{ data.recent_blog.created_at.strftime('%Y-%m-%d') }}</p>
+                <p><strong>Excerpt:</strong> {{ data.recent_blog.content[:100] }}...</p>
+            {% else %}
+                <p class="text-muted">No recent blog found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <h1 class="mt-4">✅ HELLO FROM TEMPLATE</h1>
+
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary mt-3">⬅️ Back to Dashboard</a>
+</div>
+{% endblock %}
+
+<!-- Optional JavaScript -->
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}</script>
+</body>
+</html>

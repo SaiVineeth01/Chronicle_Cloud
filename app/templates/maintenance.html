@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-4">🚧 Site Under Maintenance 🚧</h1>
+    <p class="lead mt-3">We're currently working on some updates to improve your experience. Please check back soon!</p>
+    <img src="{{ url_for('static', filename='images/maintenance.png') }}" alt="Maintenance Image" class="img-fluid mt-4" style="max-width: 400px;">
+    <p class="mt-4 text-muted">Thank you for your patience 🙌.</p>
+</div>
+{% endblock %}

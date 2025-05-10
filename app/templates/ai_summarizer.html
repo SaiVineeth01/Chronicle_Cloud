@@ -1,0 +1,21 @@
+{% extends "dashboard.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>AI Summarizer</h2>
+  <form method="POST">
+    <div class="form-group">
+      <label for="text">Enter text to summarize:</label>
+      <textarea class="form-control" id="text" name="text" rows="5">{{ request.form.text or '' }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Summarize</button>
+  </form>
+
+  {% if summary %}
+  <div class="mt-4">
+    <h4>Summary:</h4>
+    <p>{{ summary }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

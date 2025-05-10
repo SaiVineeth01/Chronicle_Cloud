@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Upload File</h2>
+  <form method="post" enctype="multipart/form-data">
+    {{ csrf_token() }}
+    <div class="mb-3">
+      <input type="file" name="file" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-upload me-1"></i> Upload
+    </button>
+    <a href="{{ url_for('files_bp.list_files') }}" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+{% endblock %}

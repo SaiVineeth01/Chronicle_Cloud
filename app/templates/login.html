@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #74ABE2, #5563DE);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 30px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .form-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #fff;
+            box-shadow: none;
+            color: #fff;
+        }
+
+        .btn-primary {
+            border: none;
+            border-radius: 30px;
+            padding: 12px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #74ABE2, #5563DE);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            background: linear-gradient(45deg, #5563DE, #74ABE2);
+        }
+
+        .footer-link {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            color: #fff;
+        }
+
+        .footer-link a {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .footer-link a:hover {
+            text-decoration: none;
+        }
+
+        /* Flash messages */
+        .alert {
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        /* Password toggle icon */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>Login to Your Account</h2>
+
+        <!-- Flash message display -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-danger">
+                    <ul class="list-unstyled mb-0">
+                        {% for category, message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <!-- Username or Email -->
+            <div class="mb-3">
+                <label for="username" class="form-label">Username or Email</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username or email" required>
+            </div>
+
+            <!-- Password with toggle -->
+            <div class="mb-3 password-wrapper">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                <span class="toggle-password" onclick="togglePassword()">
+                    <i class="fas fa-eye" id="toggleIcon"></i>
+                </span>
+            </div>
+
+            <!-- Submit button -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+        </form>
+
+        <!-- Footer Link -->
+        <p class="footer-link">Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign up here</a></p>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Password toggle script -->
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById("password");
+            const toggleIcon = document.getElementById("toggleIcon");
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = "password";
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+
+</html>

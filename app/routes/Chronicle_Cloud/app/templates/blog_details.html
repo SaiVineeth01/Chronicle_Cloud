@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ blog.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ blog.title }}</h1>
+        <p>{{ blog.content }}</p>
+        
+        <h2>Comments</h2>
+        <div class="comments">
+            {% for comment in comments %}
+            <div class="comment">
+                <p>{{ comment.content }}</p>
+                <small>Posted on: {{ comment.created_at }}</small>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h3>Add a Comment</h3>
+        <form action="{{ url_for('blog_routes.post_comment', blog_id=blog.id) }}" method="POST">
+            <textarea name="content" class="form-control" rows="5" required></textarea>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+    </div>
+</body>
+</html>

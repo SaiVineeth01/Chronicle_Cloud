@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Your Files</h2>
+
+<!-- Upload File Form -->
+<form action="{{ url_for('files_bp.upload_file') }}" method="post" enctype="multipart/form-data" class="mb-4">
+    <div class="input-group">
+        <input type="file" name="file" class="form-control" required>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-upload me-1"></i> Upload
+        </button>
+    </div>
+</form>
+
+{% if files %}
+<ul class="list-group">
+    {% for f in files %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-file-alt me-1"></i> {{ f.filename }}
+        </div>
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('files_bp.download_file', file_id=f.id) }}" class="btn btn-outline-success">
+                <i class="fas fa-download"></i>
+            </a>
+            <form action="{{ url_for('files_bp.delete_file', file_id=f.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </form>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-muted">No files uploaded yet.</p>
+{% endif %}
+{% endblock %}

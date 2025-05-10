@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Note - Advanced</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Quill.js CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+        }
+        .card {
+            max-width: 700px;
+            margin: 50px auto;
+            border-radius: 15px;
+        }
+        #editor {
+            height: 200px;
+            background: white;
+        }
+        .form-label {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <form method="POST" id="editNoteForm" enctype="multipart/form-data" novalidate>
+        <div class="card shadow-lg p-4 mb-4">
+            <h4 class="mb-3 text-center">Edit Note (Advanced)</h4>
+
+            <!-- Title -->
+            <div class="mb-3">
+                <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ note.title }}" required>
+                <div class="invalid-feedback">Please enter a title.</div>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="">Select category</option>
+                    <option value="Work" {{ 'selected' if note.category == 'Work' else '' }}>Work</option>
+                    <option value="Personal" {{ 'selected' if note.category == 'Personal' else '' }}>Personal</option>
+                    <option value="Study" {{ 'selected' if note.category == 'Study' else '' }}>Study</option>
+                    <option value="Others" {{ 'selected' if note.category == 'Others' else '' }}>Others</option>
+                </select>
+            </div>
+
+            <!-- Due Date -->
+            <div class="mb-3">
+                <label for="due_date" class="form-label">Due Date</label>
+                <input type="date" class="form-control" id="due_date" name="due_date" value="{{ note.due_date }}">
+            </div>
+
+            <!-- Content -->
+            <div class="mb-3">
+                <label class="form-label">Content <span class="text-danger">*</span></label>
+                <div id="editor">{{ note.content|safe }}</div>
+                <textarea name="content" id="content" class="d-none" required></textarea>
+                <div class="invalid-feedback">Content is required.</div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="mb-3">
+                <label for="attachment" class="form-label">Attachment (Optional)</label>
+                <input type="file" class="form-control" id="attachment" name="attachment">
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2">Save Changes</button>
+        </div>
+    </form>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Note saved successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Quill.js -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+
+    <script>
+    // Initialize Quill
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: 'Write your note content here...',
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                ['link', 'blockquote', 'code-block'],
+                [{ list: 'ordered' }, { list: 'bullet' }]
+            ]
+        }
+    });
+
+    // Set current content to textarea before submitting
+    const form = document.getElementById('editNoteForm');
+    form.addEventListener('submit', function(e) {
+        const content = document.getElementById('content');
+        content.value = quill.root.innerHTML.trim();
+
+        if (!form.checkValidity() || quill.getText().trim().length === 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (quill.getText().trim().length === 0) {
+                quill.root.classList.add('border', 'border-danger');
+            }
+        } else {
+            // Simulate success (remove if posting to backend)
+            e.preventDefault();
+            const toast = new bootstrap.Toast(document.getElementById('saveToast'));
+            toast.show();
+            form.classList.remove('was-validated');
+            setTimeout(() => {
+                form.classList.add('was-validated');
+            }, 50);
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Validate date to prevent past dates
+    const dueDateInput = document.getElementById('due_date');
+    if (dueDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dueDateInput.setAttribute('min', today);
+    }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Note | ChronicleCloud</title>
+
+  <!-- Bootstrap, FontAwesome, and Quill -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.snow.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f3f5;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      background-color: #2c2c2c;
+      color: #ddd;
+    }
+
+    .container {
+      margin-top: 50px;
+    }
+
+    .note-form {
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      border-top: 4px solid #007bff;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .note-form.dark-mode {
+      background-color: #3a3a3a;
+      border-top: 4px solid #4d9bf6;
+    }
+
+    .note-form h2 {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .note-form.dark-mode h2 {
+      color: #fff;
+    }
+
+    .note-form p {
+      color: #6c757d;
+    }
+
+    .note-form.dark-mode p {
+      color: #bbb;
+    }
+
+    .note-actions .btn {
+      border-radius: 30px;
+      padding: 12px 25px;
+      font-size: 16px;
+    }
+
+    .form-select,
+    .form-control {
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
+
+    .quill-editor {
+      height: 300px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+    }
+
+    .btn-dark {
+      background-color: #4d9bf6;
+      border-color: #4d9bf6;
+    }
+
+    .btn-dark:hover {
+      background-color: #3c80c4;
+      border-color: #347ea4;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .note-actions .btn i {
+      margin-right: 5px;
+    }
+
+    /* Dark mode toggle */
+    .toggle-mode {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+    }
+
+    .toggle-mode.dark-mode {
+      background-color: #333;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .note-form {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <button class="toggle-mode" id="toggleMode"><i class="fas fa-moon"></i></button>
+
+  <div class="container">
+    <div class="note-form mx-auto col-lg-8 col-md-10">
+      <h2 class="text-center fw-bold">📝 Create a New Note</h2>
+      <p class="text-center text-muted mb-4">Capture, organize, and track your thoughts with ease.</p>
+
+      <form method="POST" action="{{ url_for('notes.create_note') }}" novalidate>
+        <!-- Title Input -->
+        <div class="mb-3">
+          <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="title" name="title" placeholder="Enter note title" required />
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="mb-3">
+          <label for="category" class="form-label">Category</label>
+          <select class="form-select" id="category" name="category" aria-label="Select category">
+            <option value="" selected disabled>Choose...</option>
+            <option value="Work">Work</option>
+            <option value="Study">Study</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+
+        <!-- Due Date Picker -->
+        <div class="mb-3">
+          <label for="due_date" class="form-label">Due Date</label>
+          <input type="date" class="form-control" id="due_date" name="due_date" />
+        </div>
+
+        <!-- Quill Editor for Note Content -->
+        <div class="mb-3">
+          <label for="content" class="form-label">Note Content</label>
+          <div id="editor" class="quill-editor"></div>
+          <input type="hidden" name="content" id="content" />
+        </div>
+
+        <!-- Submit Button -->
+        <div class="note-actions">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Create Note
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.min.js"></script>
+
+  <script>
+    // Initialize Quill editor
+    const quill = new Quill('#editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          [{ 'align': [] }],
+          ['clean']
+        ]
+      }
+    });
+
+    // Toggle Dark Mode
+    const toggleButton = document.getElementById("toggleMode");
+    toggleButton.addEventListener("click", function() {
+      document.body.classList.toggle("dark-mode");
+      document.querySelector(".note-form").classList.toggle("dark-mode");
+      toggleButton.classList.toggle("dark-mode");
+
+      const isDarkMode = document.body.classList.contains("dark-mode");
+      toggleButton.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+
+    // Form validation before submission
+    const form = document.querySelector("form");
+    form.addEventListener("submit", (event) => {
+      const title = document.getElementById("title").value.trim();
+      const content = quill.root.innerHTML.trim();
+      document.getElementById("content").value = content;
+
+      if (!title) {
+        event.preventDefault();
+        alert("Title is required!");
+      }
+    });
+  </script>
+</body>
+
+</html>
