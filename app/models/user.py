@@ -10,9 +10,9 @@ class User(UserMixin, db.Model):
     username      = db.Column(db.String(256), unique=True, nullable=False)
     email         = db.Column(db.String(256), unique=True, nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
-    role          = db.Column(db.String(20), nullable=False, default='user')  # 'user' or 'admin'
+    role          = db.Column(db.String(20), nullable=False, default='user')  
     is_active = db.Column(db.Boolean, default=True)
-    # Relationships
+    
     notes = db.relationship(
         'Note',
         back_populates='user',
