@@ -133,4 +133,4 @@ __all__ = ['create_app', 'db', 'migrate']
 
 if __name__ == '__main__':
     app = create_app()  # ✅ Create the app here!
-    socketio.run(app, debug=True, use_reloader=True, host='0.0.0.0', port=5001)
+    socketio.run(app, debug=True, use_reloader=True, host='0.0.0.0', port=5000)
