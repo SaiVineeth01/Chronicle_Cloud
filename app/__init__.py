@@ -29,7 +29,9 @@ def create_app():
 
     # Use secrets from environment variables
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_default_key')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+    
+    # Set SQLAlchemy to use SQLite database
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'  # Update with your desired path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -58,7 +60,7 @@ def create_app():
     @app.before_request
     def check_maintenance_mode():
         settings = get_settings()
-        if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
+        if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')): 
             return render_template('maintenance.html'), 503
 
     # Routes
