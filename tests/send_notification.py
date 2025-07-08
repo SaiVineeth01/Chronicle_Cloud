@@ -1,18 +1,66 @@
+# tests/send_notification.py
+
 import sys
 import os
+from datetime import datetime
+
+# Add the parent directory (project root) to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app import create_app
-from app.controllers.notifications_controller import create_notification
-from app.models.user import User
+from app import create_app, socketio, db
+from app.models.notification import Notification
 
+# Create and configure the Flask app
 app = create_app()
+app.app_context().push()
 
-with app.app_context():
-    user_id = 1
-    user = User.query.get(user_id)
-    if user:
-        notif = create_notification(user.id, "hello honey welcome to our world!", notif_type="info")
-        print("Notification created and sent:", notif)
-    else:
-        print(f"User with ID {user_id} does not exist.")
+# Supported types
+VALID_NOTIFICATION_TYPES = ['info', 'success', 'warning', 'error']
+
+def send_notification_to_user(user_id, message, notif_type='info'):
+    if notif_type not in VALID_NOTIFICATION_TYPES:
+        print(f"⚠️ Invalid notification type '{notif_type}', defaulting to 'info'.")
+        notif_type = 'info'
+
+    created_at = datetime.now()
+
+    notif = Notification(
+        user_id=user_id,
+        message=message,
+        type=notif_type,
+        created_at=created_at,
+        read=False
+    )
+
+    db.session.add(notif)
+    db.session.commit()
+
+    socketio.emit('new_notification', {
+        'id': notif.id,
+        'user_id': notif.user_id,
+        'message': notif.message,
+        'type': notif.type,
+        'created_at': notif.created_at.isoformat(),
+        'read': notif.read
+    }, to=None)
+
+    print(f"✅ Notification sent to user {user_id} with type '{notif_type}'.")
+
+# Example usage
+if __name__ == '__main__':
+    send_notification_to_user(
+        1,
+        "📬 Admin sent you an update! Hi!!! Please update when you get this notification.",
+        "info"
+    )
+    send_notification_to_user(
+        5,
+        "🚀 Welcome to our world!",
+        "success"
+    )
+    send_notification_to_user(
+        5,
+        "🚨 Hey Kane! Please follow the rules and regulations of our community. Thank you!",
+        "warning"
+    )
+

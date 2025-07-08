@@ -1,32 +1,154 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chronicle Cloud</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=1.0.3">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand">Chronicle Cloud</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="/dashboard">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/view_blogs">Blogs</a></li>
+          <li class="nav-item"><a class="nav-link" href="/view_notes">Notes</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/users">Users</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/settings">Settings</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/analytics">Analytics</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-{% block content %}
-<div class="container mt-5">
-  <h1>User Management</h1>
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Username</th>
-        <th scope="col">Email</th>
-        <th scope="col">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.id }}</td>
-        <td>{{ user.username }}</td>
-        <td>{{ user.email }}</td>
-        <td>
-          <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-warning">Edit</a>
-          <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endblock %}
+  <main class="container mt-5">
+    <div class="container py-5">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary"><i class="bi bi-people-fill me-2"></i>User Management</h2>
+        <form class="d-flex" method="GET" action="/admin/users">
+          <input type="text" name="q" class="form-control me-2" placeholder="Search users...">
+          <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+        </form>
+      </div>
+
+      <!-- User Table -->
+      <div class="card shadow border-0">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle text-center">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user in users %}
+                <tr>
+                  <td><span class="badge bg-secondary">{{ loop.index }}</span></td>
+                  <td class="fw-semibold">{{ user.username }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    <span class="badge {{ 'bg-danger' if user.role == 'admin' else 'bg-info' }}">
+                      {{ user.role.title() }}
+                    </span>
+                  </td>
+                  <td>
+  {% if user.id in online_users %}
+    <span class="badge bg-success">Active</span>
+  {% else %}
+    <span class="badge bg-secondary">Inactive</span>
+  {% endif %}
+</td>
+
+                  <td>
+                    <div class="d-flex justify-content-center gap-3">
+                      
+                      <form action="/admin/users/delete/{{ user.id }}" method="POST"
+                            onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?')"
+                            class="m-0">
+                        <button type="submit"
+                                class="btn btn-sm btn-danger d-flex align-items-center gap-1 px-3 shadow-sm"
+                                data-bs-toggle="tooltip" title="Delete User">
+                          <i class="bi bi-trash3-fill"></i> <span>Delete</span>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <nav aria-label="User pagination">
+            <ul class="pagination justify-content-center mt-4">
+              <li class="page-item disabled"><a class="page-link">Previous</a></li>
+              <li class="page-item active"><a class="page-link" href="#">1</a></li>
+              <li class="page-item"><a class="page-link" href="#">2</a></li>
+              <li class="page-item"><a class="page-link" href="#">3</a></li>
+              <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-dark text-white text-center py-3">
+    <p>Chronicle Cloud &copy; 2025</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const tooltipList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipList.forEach(el => new bootstrap.Tooltip(el));
+  </script>
+
+  <!-- Styling -->
+  <style>
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+      transition: background-color 0.2s ease-in-out;
+    }
+    .edit-btn, .delete-btn {
+      transition: all 0.3s ease;
+      border-radius: 50px;
+      font-weight: 500;
+    }
+    .edit-btn:hover {
+      background-color: #ffc107 !important;
+      color: #212529;
+      box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+      transform: translateY(-1px);
+    }
+    .delete-btn:hover {
+      background-color: #dc3545 !important;
+      color: white;
+      box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn i {
+      font-size: 1rem;
+    }
+    .btn span {
+      display: inline-block;
+    }
+  </style>
+</body>
+</html>

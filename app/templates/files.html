@@ -1,39 +1,176 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h2>Your Files</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Uploaded Files</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Upload File Form -->
-<form action="{{ url_for('files_bp.upload_file') }}" method="post" enctype="multipart/form-data" class="mb-4">
-    <div class="input-group">
-        <input type="file" name="file" class="form-control" required>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-upload me-1"></i> Upload
-        </button>
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    .card:hover {
+      transform: scale(1.02);
+      transition: transform 0.3s ease;
+    }
+
+    .btn-outline-success:hover {
+      background-color: #198754;
+      color: #fff;
+    }
+
+    .btn-outline-danger:hover {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    .custom-form {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+
+    .custom-file-label {
+      font-weight: 600;
+    }
+
+    .modal-content {
+      transition: all 0.3s ease-in-out;
+    }
+
+    .modal-header.bg-danger {
+      border-bottom: 1px solid #ffccd5;
+    }
+
+    .badge-admin {
+      background-color: #dc3545;
+      font-size: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container my-5">
+  <h2 class="mb-4 text-primary fw-bold">
+    <i class="fas fa-folder-open me-2"></i>Your Uploaded Files
+  </h2>
+   
+
+  <!-- Upload File Form -->
+  <form action="{{ url_for('files_bp.upload_file') }}" method="post" enctype="multipart/form-data"
+        class="mb-4 p-4 border rounded shadow-sm custom-form">
+    <div class="mb-3">
+      <label for="fileInput" class="form-label custom-file-label">Select a file to upload</label>
+      <input type="file" name="file" id="fileInput" class="form-control" required>
     </div>
-</form>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-upload me-2"></i>Upload File
+    </button>
+  </form>
 
-{% if files %}
-<ul class="list-group">
+  <!-- Display Uploaded Files -->
+  {% if files %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for f in files %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-        <div>
-            <i class="fas fa-file-alt me-1"></i> {{ f.filename }}
-        </div>
-        <div class="btn-group btn-group-sm">
-            <a href="{{ url_for('files_bp.download_file', file_id=f.id) }}" class="btn btn-outline-success">
-                <i class="fas fa-download"></i>
+    <div class="col">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+
+          <!-- File Icon + Name -->
+          <h5 class="card-title text-truncate">
+            {% set ext = f.filename.split('.')[-1].lower() %}
+            {% if ext in ['jpg', 'jpeg', 'png'] %}
+              <i class="fas fa-file-image text-info me-2"></i>
+            {% elif ext == 'pdf' %}
+              <i class="fas fa-file-pdf text-danger me-2"></i>
+            {% elif ext == 'txt' %}
+              <i class="fas fa-file-lines text-muted me-2"></i>
+            {% else %}
+              <i class="fas fa-file text-secondary me-2"></i>
+            {% endif %}
+            {{ f.filename }}
+          </h5>
+
+          <!-- Uploader & Date -->
+          <p class="text-muted mb-1 small">
+            <i class="fas fa-user me-1"></i> Uploaded by:
+            <strong>
+              {{ f.uploader.username }}
+              {% if f.uploader.role == 'admin' %}
+                <span class="badge badge-admin ms-1">Admin</span>
+              {% endif %}
+            </strong>
+          </p>
+<p class="card-text"> 
+  <small class="text-muted">
+    <i class="fas fa-clock me-1"></i>
+    {{ f.uploaded_at_ist.strftime('%I:%M %p, %b %d, %Y') if f.uploaded_at_ist else 'Unknown Time' }}
+  </small>
+</p>
+
+          <!-- Actions -->
+          <div class="d-flex justify-content-between mt-auto">
+            <a href="{{ url_for('files_bp.download_file', file_id=f.id) }}"
+               class="btn btn-outline-success btn-sm" data-bs-toggle="tooltip" title="Download">
+              <i class="fas fa-download"></i>
             </a>
-            <form action="{{ url_for('files_bp.delete_file', file_id=f.id) }}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </form>
+
+            {% if current_user.role == 'admin' or (f.uploaded_by == current_user.id and f.uploader.role != 'admin') %}
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#confirmDelete{{ f.id }}" title="Delete">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+            {% endif %}
+          </div>
         </div>
-    </li>
+      </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="confirmDelete{{ f.id }}" tabindex="-1" aria-labelledby="deleteLabel{{ f.id }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="deleteLabel{{ f.id }}">Confirm Delete</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to delete <strong>{{ f.filename }}</strong>?
+          </div>
+          <div class="modal-footer">
+            <form action="{{ url_for('files_bp.delete_file', file_id=f.id) }}" method="post">
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt me-1"></i> Delete
+              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
     {% endfor %}
-</ul>
-{% else %}
-<p class="text-muted">No files uploaded yet.</p>
-{% endif %}
+  </div>
+  {% else %}
+  <div class="alert alert-info mt-4 d-flex align-items-center" role="alert">
+    <i class="fas fa-info-circle me-2"></i>No files uploaded yet.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Tooltip Init -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltips].map(el => new bootstrap.Tooltip(el));
+  });
+</script>
+
+</body>
+</html>
+
 {% endblock %}

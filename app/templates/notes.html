@@ -1,264 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Notes | ChronicleCloud</title>
-    <!-- Favicon and CSS Libraries -->
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(to right, #f8f9fa, #e9ecef);
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-        .dark-mode {
-            background: #121212 !important;
-            color: #e0e0e0 !important;
-        }
-        .dark-mode .note-card {
-            background: #1e1e1e;
-            color: #e0e0e0;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.08);
-        }
-        .dark-mode .note-header {
-            background: linear-gradient(135deg, #333 0%, #555 100%);
-        }
-        .note-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
-            border-radius: 20px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            position: relative;
-        }
-        .note-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        .truncate {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-        }
-        .note-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: #fff;
-            padding: 20px;
-            border-radius: 20px 20px 0 0;
-            text-align: center;
-        }
-        .note-tags span {
-            font-size: 0.75rem;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            display: inline-block;
-            background: rgba(0, 0, 0, 0.05);
-            padding: 5px 10px;
-            border-radius: 12px;
-        }
-        .note-meta p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-        .dark-mode .note-tags span {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ccc;
-        }
-        .dark-mode .note-meta p {
-            color: #aaa;
-        }
-        .dark-mode .search-bar {
-            background: #2c2c2c;
-            color: #e0e0e0;
-            border: 1px solid #444;
-        }
-        .dark-mode .form-control::placeholder {
-            color: #aaa;
-        }
-        .search-bar {
-            border-radius: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: box-shadow 0.3s ease;
-        }
-        .search-bar:focus {
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-        .delete-all-btn {
-            border-radius: 30px;
-            padding: 10px 30px;
-            font-weight: 500;
-        }
-        /* Additional Styles for Read More */
-        .note-content {
-            height: 120px;
-            overflow: hidden;
-        }
-        .note-card .read-more-btn {
-            margin-top: auto;
-            cursor: pointer;
-            color: #007bff;
-        }
-        .note-card.expanded .note-content {
-            height: auto;
-            overflow: visible;
-        }
-        .note-card.expanded .read-more-btn {
-            color: #ff4500;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes | ChronicleCloud</title>
+
+  <!-- Favicon & Fonts -->
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <!-- Vis.js for concept map -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css" rel="stylesheet"/>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background: #121212 !important;
+      color: #e0e0e0 !important;
+    }
+    .dark-mode .note-card {
+      background: rgba(30, 30, 30, 0.85);
+      color: #e0e0e0;
+      box-shadow: 0 8px 20px rgba(255, 255, 255, 0.05);
+    }
+    .note-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .note-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    }
+    .note-header {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 20px 20px 0 0;
+    }
+    .dark-mode .note-header {
+      background: linear-gradient(135deg, #333, #555);
+    }
+    .note-tags span {
+      font-size: 0.7rem;
+      margin: 3px;
+      padding: 5px 10px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.05);
+      display: inline-block;
+    }
+    .dark-mode .note-tags span {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ddd;
+    }
+    .note-meta p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+    .dark-mode .note-meta p {
+      color: #aaa;
+    }
+    .note-content {
+      max-height: 120px;
+      overflow: hidden;
+      position: relative;
+      font-size: 0.95rem;
+    }
+    .note-card.expanded .note-content {
+      max-height: none;
+    }
+    .read-more-btn {
+      margin-top: auto;
+      cursor: pointer;
+      color: #007bff;
+      font-size: 0.9rem;
+      border: none;
+      background: transparent;
+    }
+    .note-card.expanded .read-more-btn {
+      color: #ff5722;
+    }
+    .search-bar {
+      border-radius: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .search-bar:focus {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+  </style>
 </head>
 <body>
-    <!-- Back Button & Dark Mode Toggle -->
-    <div class="d-flex justify-content-between align-items-center p-3 bg-white shadow-sm dark-toggle-area">
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-        </a>
-        <button class="btn btn-outline-secondary dark-mode-btn" id="toggle-theme" title="Toggle dark mode">
-            <i class="fas fa-moon"></i>
-        </button>
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center p-3 bg-white shadow-sm">
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+    <button class="btn btn-outline-secondary" id="toggle-theme" title="Toggle dark mode">
+      <i class="fas fa-moon"></i>
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mt-4">
+    <div class="text-center mb-5">
+      <h1 class="fw-bold display-5 text-primary">🗂️ My Notes</h1>
+      <p class="text-muted fs-5">Browse, search, edit, or delete your notes easily and stay organized.</p>
     </div>
 
-    <div class="container mt-4">
-        <div class="text-center mb-5">
-            <h1 class="fw-bold display-5 text-primary">🗂️ My Notes</h1>
-            <p class="text-muted fs-5">Browse, search, edit, or delete your notes easily and stay organized.</p>
-        </div>
+    <input type="text" id="searchInput" class="form-control mb-4 search-bar" placeholder="🔍 Search notes...">
 
-        <!-- Search Bar -->
-        <div class="mb-4">
-            <input type="text" id="searchInput" class="form-control search-bar" placeholder="🔍 Search notes by title or content...">
-        </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    {% if notes %}
+      <div class="row g-4" id="notesContainer">
+        {% for note in notes %}
+        <div class="col-lg-4 col-md-6 note-item">
+          <div class="note-card h-100">
+            <div class="note-header">
+              <h5>{{ note.title }}</h5>
+              <p class="mb-0 fs-6">
+    {% if note.user.role == 'admin' %}
+      <i class="fas fa-crown text-warning me-1" title="Admin"></i>
+      <strong class="text-warning">{{ note.user.username }}</strong>
+    {% elif note.user.gender == 'male' %}
+      <i class="fas fa-user-tie text-primary me-1" title="Male User"></i>
+      <span class="text-primary">{{ note.user.username }}</span>
+    {% elif note.user.gender == 'female' %}
+      <i class="fas fa-user-graduate text-danger me-1" title="Female User"></i>
+      <span class="text-danger">{{ note.user.username }}</span>
+    {% else %}
+      <i class="fas fa-user-alt text-muted me-1" title="User"></i>
+      <span class="text-muted">{{ note.user.username }}</span>
+    {% endif %}
+  </p>
 
-        {% if notes %}
-            <div class="row g-4" id="notesContainer">
-                {% for note in notes %}
-                    <div class="col-lg-4 col-md-6 note-item">
-                        <div class="note-card h-100 d-flex flex-column">
-                            <div class="note-header">
-                                <h5>{{ note.title }}</h5>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                {% if note.tags %}
-                                    <div class="note-tags mb-2">
-                                        {% for tag in note.tags %}
-                                            <span class="badge bg-info text-dark">{{ tag }}</span>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="note-meta mb-2">
-                                    <p><i class="fas fa-folder-open me-2"></i><strong>Category:</strong> {{ note.category }}</p>
-                                    <p><i class="fas fa-calendar-alt me-2"></i><strong>Due:</strong> {{ note.due_date }}</p>
-                                    <p><i class="fas fa-clock me-2"></i><strong>Created:</strong> {{ note.created_at.strftime('%Y-%m-%d') }}</p>
-                                </div>
-                                <div class="note-content">
-                                    {{ note.content|safe }}
-                                </div>
-                                <button class="btn btn-link read-more-btn" onclick="toggleReadMore(this)">Read More</button>
-                                <div class="mt-auto d-flex justify-content-between align-items-center mt-3">
-                                    <a href="{{ url_for('notes.edit_note', note_id=note.id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
-                                        <i class="fas fa-edit me-1"></i> Edit
-                                    </a>
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill d-flex align-items-center" onclick="deleteNote({{ note.id }}, this)">
-                                        <span>Delete</span>
-                                        <div class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></div>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+
             </div>
-        {% else %}
-            <div class="alert alert-info text-center mt-4">
-                <i class="fas fa-info-circle me-1"></i> No notes found. <a href="{{ url_for('main.create_note') }}">Create a new note</a> to get started.
-            </div>
-        {% endif %}
+            <div class="card-body d-flex flex-column">
+              {% if note.tags %}
+              <div class="note-tags mb-2">
+                {% for tag in note.tags %}
+                <span class="badge bg-info text-dark">{{ tag }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <div class="note-meta mb-2">
+                <p><strong>📁 Category:</strong> {{ note.category }}</p>
+                <p><strong>📅 Due:</strong> {{ note.due_date }}</p>
+                <p><strong>🕒 Created:</strong> {{ note.created_at.strftime('%d-%m-%Y') }}</p>
+              </div>
+              <div class="note-content">{{ note.content|safe }}</div>
+              <button class="read-more-btn" onclick="toggleReadMore(this)">Read More</button>
+              <button class="btn btn-outline-info btn-sm mt-2" onclick="showConceptMap({{ note.id }})">
+                <i class="fas fa-project-diagram me-1"></i> Concept Map
+              </button>
 
-        {% if notes %}
-            <div class="text-center mt-5">
-                <button class="btn btn-danger delete-all-btn" onclick="deleteAllNotes(this)">
-                    <i class="fas fa-trash-alt me-2"></i> Delete All Notes
-                    <div class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></div>
+              <div class="note-actions d-flex justify-content-between align-items-center mt-3">
+                <a href="{{ url_for('notes.edit_note', note_id=note.id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                  <i class="fas fa-edit me-1"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-outline-danger rounded-pill d-flex align-items-center" onclick="deleteNote({{ note.id }}, this)">
+                  <span>Delete</span>
+                  <div class="spinner-border spinner-border-sm ms-2" style="display:none;" role="status"></div>
                 </button>
+              </div>
             </div>
-        {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="text-center mt-5">
+        <button class="btn btn-danger delete-all-btn" onclick="deleteAllNotes(this)">
+          <i class="fas fa-trash-alt me-2"></i> Delete All Notes
+          <div class="spinner-border spinner-border-sm ms-2" role="status" style="display:none;"></div>
+        </button>
+      </div>
+    {% else %}
+      <div class="alert alert-info text-center mt-4">
+        <i class="fas fa-info-circle me-1"></i>        <a href="{{ url_for('main.create_note') }}">Create a new note</a>.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Concept Map Modal -->
+  <div class="modal fade" id="conceptMapModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content bg-light">
+        <div class="modal-header">
+          <h5 class="modal-title">🧠 Concept Map</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="conceptMap" style="height: 500px;"></div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- JS Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
-    <script>
-        // Dark Mode Toggle with Local Storage
-        const themeToggleBtn = document.getElementById("toggle-theme");
-        const body = document.body;
 
-        if (localStorage.getItem('theme') === 'dark') {
-            body.classList.add('dark-mode');
-            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-        }
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
 
-        themeToggleBtn.addEventListener("click", () => {
-            const isDark = body.classList.toggle('dark-mode');
-            themeToggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  <script>
+    const themeToggleBtn = document.getElementById("toggle-theme");
+    const body = document.body;
+
+    if (localStorage.getItem('theme') === 'dark') {
+      body.classList.add('dark-mode');
+      themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    themeToggleBtn.addEventListener("click", () => {
+      const isDark = body.classList.toggle('dark-mode');
+      themeToggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    function toggleReadMore(btn) {
+      const card = btn.closest('.note-card');
+      card.classList.toggle('expanded');
+    }
+
+    function deleteNote(noteId, btn) {
+      if (confirm('Are you sure you want to delete this note?')) {
+        const spinner = btn.querySelector('.spinner-border-sm');
+        spinner.style.display = 'inline-block';
+        fetch(`/notes/delete/${noteId}`, { method: 'DELETE' })
+          .then(res => res.json()).then(data => {
+            if (data.success) window.location.reload();
         });
+      }
+    }
 
-        // Delete Single Note with Spinner
-        function deleteNote(noteId, btn) {
-            if (confirm('Are you sure you want to delete this note?')) {
-                const spinner = btn.querySelector('.spinner-border-sm');
-                spinner.style.display = 'inline-block';
-                fetch(`/notes/delete/${noteId}`, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.reload();
-                        }
-                    });
-            }
-        }
+    function deleteAllNotes(btn) {
+      const spinner = btn.querySelector('.spinner-border');
+      spinner.style.display = 'inline-block';
+      fetch('/notes/delete_all', { method: 'DELETE' })
+        .then(res => res.json()).then(data => {
+          if (data.success) window.location.reload();
+      });
+    }
 
-        // Delete All Notes with Spinner
-        function deleteAllNotes(btn) {
-            const spinner = btn.querySelector('.spinner-border');
-            spinner.style.display = 'inline-block';
-            fetch('/notes/delete_all', { method: 'DELETE' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-                    }
-                });
-        }
+    function showConceptMap(noteId) {
+      fetch(`/concept/map/${noteId}`)
+        .then(res => res.json())
+        .then(data => {
+          const nodes = new vis.DataSet(data.nodes.map(n => ({ id: n.id, label: n.id })));
+          const edges = new vis.DataSet(data.links.map(e => ({ from: e.source, to: e.target })));
 
-        // Read More Toggle
-        function toggleReadMore(btn) {
-            const card = btn.closest('.note-card');
-            card.classList.toggle('expanded');
-        }
-    </script>
+          const container = document.getElementById("conceptMap");
+          container.innerHTML = "";
+          const network = new vis.Network(container, { nodes, edges }, {
+            nodes: { shape: "dot", size: 16, font: { size: 14 } },
+            edges: { arrows: "to", smooth: true },
+            physics: { stabilization: true }
+          });
+
+          new bootstrap.Modal(document.getElementById('conceptMapModal')).show();
+        });
+    }
+
+    
+  </script>
 </body>
 </html>

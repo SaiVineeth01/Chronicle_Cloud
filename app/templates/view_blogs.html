@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blogs | ChronicleCloud</title>
-    <!-- Favicon and CSS Libraries -->
     <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
@@ -53,20 +52,22 @@
             padding: 20px;
             position: relative;
         }
-        .card-header h5 {
+        .card-header h5, .card-header .category {
             margin: 0;
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
+        .card-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap; /* allow wrapping */
+    word-break: break-word;
+}
+
         .card-header .category {
             font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 5px;
-            opacity: 0.9;
+            margin-top: 8px;
         }
         .date-badge {
             position: absolute;
@@ -82,17 +83,15 @@
             align-items: center;
             gap: 5px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            
         }
         .card-body {
             padding: 20px;
             font-size: 1rem;
-            min-height: 160px;
+            
         }
         .card-body p {
-            text-align: justify; /* Added alignment */
-        }
-        .modal-body p {
-            text-align: justify; /* Added alignment for modal content */
+            text-align: justify;
         }
         .card-footer {
             background: #f7f7f7;
@@ -179,13 +178,29 @@
             <div class="col-md-6 col-lg-4 blog-item">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5>📝 {{ blog.title }}</h5>
-                        <div class="category">
-                            🗂️ {{ blog.category or 'Uncategorized' }}
-                        </div>
+                        <h5><strong>📝 Title:</strong> {{ blog.title }}</h5>
+                        <div class="category"><strong>🗂️ Category:</strong> {{ blog.category or 'Uncategorized' }}</div>
                         <div class="date-badge">
-                            <i class="fas fa-calendar-alt"></i> {{ blog.created_at.strftime('%Y-%m-%d') if blog.created_at else 'Date N/A' }}
+                            <i class="fas fa-calendar-alt"></i>
+                            <strong>Date:</strong> {{ blog.created_at.strftime('%d-%m-%Y') }}
+
                         </div>
+                        {% if blog.user %}
+                            <div class="mt-2 d-flex align-items-center gap-2">
+                                <strong>👤 Created by:</strong>
+                                {% if blog.user.role == 'admin' %}
+                                    👑 <span class="fw-bold text-warning">{{ blog.user.username }} (Admin)</span>
+                                {% else %}
+                                    {% if blog.user.gender == 'male' %}
+                                        👨 <span>{{ blog.user.username }}</span>
+                                    {% elif blog.user.gender == 'female' %}
+                                        👩 <span>{{ blog.user.username }}</span>
+                                    {% else %}
+                                        🧑 <span>{{ blog.user.username }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="card-body">
                         <p class="card-text">{{ blog.content[:180] }}...</p>
@@ -203,7 +218,7 @@
                 </div>
             </div>
 
-            <!-- Modal for Full Content -->
+            <!-- Modal -->
             <div class="modal fade" id="blogModal{{ blog.id }}" tabindex="-1" aria-labelledby="blogModalLabel{{ blog.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -212,8 +227,10 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <p><strong>Category:</strong> {{ blog.category or 'Uncategorized' }}</p>
-                            <p><strong>Published:</strong> {{ blog.created_at.strftime('%Y-%m-%d') if blog.created_at else 'Date N/A' }}</p>
+                            <p><strong>📝 Title:</strong> {{ blog.title }}</p>
+                            <p><strong>🗂️ Category:</strong> {{ blog.category or 'Uncategorized' }}</p>
+                            <p><strong>📅 Published:</strong> {{ blog.created_at.strftime('%d-%m-%Y') }}
+</p>
                             <hr>
                             <p>{{ blog.content }}</p>
                         </div>
@@ -227,9 +244,8 @@
     </div>
 </div>
 
-<!-- Bootstrap Bundle & Tooltip Init -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {

@@ -1,39 +1,117 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container mt-5">
-  <h1>Admin Dashboard</h1>
-  <p>Total Users: {{ user_count }}</p>
-  <div class="row">
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-header">Users</div>
-        <div class="card-body">
-          <p>Manage user access and roles.</p>
-          <a href="{{ url_for('admin.users') }}" class="btn btn-primary">View Users</a>
-        </div>
-      </div>
-    </div>
+<div class="container py-5">
+  <h1 class="mb-3 text-center display-5 fw-bold text-primary">
+    <i class="bi bi-speedometer2"></i> Admin Dashboard
+  </h1>
+  <p class="text-center text-muted mb-5">Monitor, manage, and configure your system settings efficiently.</p>
 
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-header">Settings</div>
-        <div class="card-body">
-          <p>Update system settings.</p>
-          <a href="{{ url_for('admin.settings') }}" class="btn btn-warning">Go to Settings</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-header">Analytics</div>
-        <div class="card-body">
-          <p>View system analytics and stats.</p>
-          <a href="{{ url_for('admin.analytics') }}" class="btn btn-info">View Analytics</a>
-        </div>
+  <div class="row justify-content-center mb-4">
+    <div class="col-auto">
+      <div class="badge bg-gradient-primary bg-primary-subtle text-dark shadow px-4 py-2 fs-6 rounded-pill">
+        👥 Total Users: <strong>{{ user_count }}</strong>
       </div>
     </div>
   </div>
+
+  <div class="row g-4">
+
+    <!-- Users Card -->
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-lg bg-light-hover hover-scale">
+        <div class="card-header bg-gradient bg-primary text-white fw-semibold fs-5">
+          <i class="bi bi-people-fill"></i> User Management
+        </div>
+        <div class="card-body">
+          <p class="card-text text-muted">Add, remove, and manage users and their roles with full control.</p>
+          <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary w-100 mt-2">
+            👤 Manage Users
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Card -->
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-lg bg-light-hover hover-scale">
+        <div class="card-header bg-warning text-dark fw-semibold fs-5">
+          <i class="bi bi-gear-fill"></i> System Settings
+        </div>
+        <div class="card-body">
+          <p class="card-text text-muted">Customize Chronicle Cloud’s configuration and preferences.</p>
+          <a href="{{ url_for('admin.settings') }}" class="btn btn-outline-warning w-100 mt-2">
+            ⚙️ Configure Settings
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Card -->
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-lg bg-light-hover hover-scale">
+        <div class="card-header bg-info text-white fw-semibold fs-5">
+          <i class="bi bi-bar-chart-line-fill"></i> Analytics & Reports
+        </div>
+        <div class="card-body">
+          <p class="card-text text-muted">Track platform statistics, system performance, and trends.</p>
+          <a href="{{ url_for('admin.analytics') }}" class="btn btn-outline-info w-100 mb-2">
+            📊 View Analytics
+          </a>
+          <a href="{{ url_for('admin.settings') }}" class="btn btn-outline-secondary w-100">
+            🛠 Site Settings
+          </a>
+<a href="{{ url_for('notes.moderate_notes') }}" class="btn btn-outline-primary w-100 mt-2">Moderate Notes</a>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
+<div class="card mt-4">
+  <div class="card-header bg-info text-white">📣 Broadcast Message</div>
+  <div class="card-body">
+    <form id="broadcastForm">
+      <textarea class="form-control mb-2" id="broadcastMessage" rows="3" placeholder="Enter your message..."></textarea>
+      <select id="target" class="form-select mb-2">
+        <option value="all">All Users</option>
+        <option value="subscribers">Subscribers Only</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Send Notification</button>
+      <div id="broadcastStatus" class="mt-2"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('broadcastForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const message = document.getElementById('broadcastMessage').value;
+    const target = document.getElementById('target').value;
+
+    fetch('/subscription/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, target })
+    })
+    .then(res => res.json())
+    .then(data => {
+      const status = document.getElementById('broadcastStatus');
+      status.innerText = data.message;
+      status.style.color = data.status === 'success' ? 'green' : 'red';
+    });
+  });
+</script>
+
+
+<style>
+  .hover-scale:hover {
+    transform: scale(1.03);
+    transition: 0.3s ease-in-out;
+  }
+  .bg-light-hover:hover {
+    background-color: #f8f9fa !important;
+  }
+</style>
 {% endblock %}

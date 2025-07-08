@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chronicle Cloud Dashboard</title>
+  <title>{{ settings.site_name if settings else 'ChronicleCloud' }} Dashboard</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
   <script src="https://kit.fontawesome.com/a2e0b1e7d1.js" crossorigin="anonymous"></script>
@@ -122,6 +123,67 @@
         font-size: 0.9rem;
       }
     }
+.testimonial {
+background-color: #fff;
+padding: 1.5rem;
+border-left: 5px solid var(--primary);
+border-radius: 10px;
+height: 100%;
+}
+.activity-timeline {
+  border-left: 3px solid #dee2e6;
+  padding-left: 1rem;
+  margin-left: 10px;
+}
+
+.activity-card {
+  background-color: #f8f9fa;
+  position: relative;
+}
+
+.activity-card::before {
+  content: "";
+  position: absolute;
+  left: -1.1rem;
+  top: 0.7rem;
+  width: 12px;
+  height: 12px;
+  background-color: #0d6efd;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.activity-carousel-vertical {
+  max-height: 300px; /* Adjust height as needed */
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding-right: 5px;
+}
+
+.activity-inner-scroll {
+  animation: scroll-vertical 15s linear infinite;
+}
+
+@keyframes scroll-vertical {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+/* Optional: Custom scrollbar styling */
+.activity-carousel-vertical::-webkit-scrollbar {
+  width: 6px;
+}
+.activity-carousel-vertical::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 5px;
+}
+
+
   </style>
 </head>
 <body>
@@ -129,7 +191,8 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#"><i class="fas fa-cloud"></i> ChronicleCloud</a>
+      <a class="navbar-brand" href="#"><i class="fas fa-cloud"></i> {{ settings.site_name if settings else 'ChronicleCloud' }}</a>
+
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -139,12 +202,33 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.notes') }}">Notes</a></li>
 
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.blogs') }}">Blogs</a></li>
+
+<li class="nav-item"><a class="nav-link" href="{{ url_for('ai.keyword_page') }}">AI Keyword Tool</a></li>
+
+<li class="nav-item"><a class="nav-link" href="{{ url_for('ai.sentiment') }}">AI Sentiment</a></li>
+
+
+<li class="nav-item">
+  <a class="nav-link" href="{{ url_for('home.nlp_tools') }}">🔍 Try NLP Tools</a>
+</li>
+
+
+
+
+
+
+
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.upload') }}">Files</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.notifications') }}">Notifications</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users') }}">Users</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.admin_login') }}">Admin Login</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.settings') }}">Settings</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.analytics') }}">Analytics</a></li>
+</a>
+
+
+
+
           <li class="nav-item"><a class="nav-link text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
         </ul>
       </div>
@@ -166,56 +250,149 @@
     <section class="row mb-5">
       <div class="col-12">
         <div class="alert alert-info" role="alert">
-          <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Welcome to Chronicle Cloud!</h4>
+          <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Welcome to {{ settings.site_name if settings else 'ChronicleCloud' }}!</h4>
+
           <p>Chronicle Cloud is your all-in-one platform for managing your notes, blogs, and files with advanced collaborative features.</p>
         </div>
       </div>
     </section>
 
-    <!-- New Options Section -->
-    <section class="row mb-4">
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header">
-            <i class="fas fa-users"></i> User Management
-          </div>
-          <div class="card-body">
-            <p>Manage and monitor user access, roles, and permissions.</p>
-            <a href="{{ url_for('admin.users') }}" class="btn btn-primary"><i class="fas fa-eye"></i> View Users</a>
-          </div>
-        </div>
-      </div>
 
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header">
-            <i class="fas fa-cogs"></i> Settings
-          </div>
-          <div class="card-body">
-            <p>Update your platform settings and preferences.</p>
-            <a href="{{ url_for('admin.settings') }}" class="btn btn-primary"><i class="fas fa-sliders-h"></i> Manage Settings</a>
-          </div>
-        </div>
-      </div>
 
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header">
-            <i class="fas fa-chart-line"></i> Analytics
-          </div>
-          <div class="card-body">
-            <p>Analyze your usage data and platform insights.</p>
-            <a href="{{ url_for('admin.analytics') }}" class="btn btn-primary"><i class="fas fa-chart-bar"></i> View Analytics</a>
-          </div>
+
+<!-- Latest Blog Posts -->
+<section class="mb-5">
+  <h2 class="section-title mb-4"><i class="fas fa-newspaper"></i> Latest Blogs & Stories</h2>
+  <div class="row g-4">
+    {% for blog in blogs %}
+    <article class="col-md-4">
+      <div class="card shadow border-0 h-100">
+        
+        <!-- Blog Title and Author -->
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{ blog.title }}</h5>
+          <small class="d-flex align-items-center">
+            {% if blog.user.role == 'admin' %}
+              👑 <span class="ms-1 fw-bold">{{ blog.user.username }}</span>
+            {% else %}
+              👤 <span class="ms-1">{{ blog.user.username }}</span>
+            {% endif %}
+          </small>
+</div>
+        
+        <!-- Blog Meta + Image -->
+        <div class="card-body">
+          <!-- Category and Due Date -->
+          <p><span class="badge bg-light text-dark fs-6">📂 {{ blog.category or 'Uncategorized' }}</span></p>
+          <p class="bg-muted text-muted small fw-semibold">
+  📅 Created_at: {{ blog.due_date.strftime('%d-%m-%Y') if blog.due_date else 'Not set' }}
+</p>
+
+          <!-- Blog Image -->
+          {% if blog.image_url %}
+            <img src="{{ url_for('static', filename=blog.image_url) }}" alt="Blog Image" class="img-fluid rounded" style="object-fit: cover; width: 100%; height: auto;">
+          {% else %}
+            <img src="{{ url_for('static', filename='default_blog.jpg') }}" alt="Default Blog Image" class="img-fluid rounded" style="object-fit: cover; width: 100%; height: auto;">
+          {% endif %}
+          <a href="{{ url_for('blogs.view_blogs') }}" class="btn btn-sm btn-success mt-2">📖 Read More</a>
+        </div>
+
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+
+
+
+
+
+
+<!-- Testimonials -->
+<section class="mb-5">
+  <h2 class="mb-4"><i class="fas fa-comments"></i> Testimonials</h2>
+  <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      {% for t in testimonials %}
+      <div class="carousel-item {% if loop.first %}active{% endif %}">
+        <div class="testimonial text-center p-4">
+          
+          <p class="mb-3">"{{ t.message }}"</p>
+
+          <!-- 👤 Icon added, blue line removed via custom style -->
+          <footer class="blockquote-footer text-dark" style="border: none; background-color: transparent;">
+            👤 {{ t.username }}
+          </footer>
+
+          {% if current_user.is_authenticated and current_user.role == 'admin' %}
+          <form method="POST"
+                action="{{ url_for('testimonial.delete_testimonial', testimonial_id=t.id) }}"
+                onsubmit="return confirm('Are you sure you want to delete this testimonial?');">
+            <button type="submit" class="btn btn-sm btn-danger mt-2">🗑️ Delete</button>
+          </form>
+          {% endif %}
         </div>
       </div>
-    </section>
+      {% endfor %}
+    </div>
+
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+  </div>
+</section>
+
+<!-- Submit Testimonial -->
+<section class="mb-5">
+  <h2 class="mb-3"><i class="fas fa-pencil-alt"></i> Share Your Experience</h2>
+  <form method="POST" action="{{ url_for('main.submit_testimonial') }}">
+    <div class="mb-3">
+      <textarea class="form-control" name="message" rows="3" placeholder="Write your testimonial here..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
+  </form>
+</section>
+
+
+<!-- Recent Activities (Card Timeline Style) -->
+<section class="mb-5">
+  <h2 class="mb-4"><i class="fas fa-history"></i> Recent Activities</h2>
+  <div class="activity-carousel-vertical">
+    <div class="activity-inner-scroll">
+      {% for a in activities %}
+      <div class="activity-card mb-3 shadow-sm p-3 rounded d-flex align-items-start">
+        <div class="icon-wrapper me-3">
+          <i class="fas 
+            {% if a.action_type == 'note' %}fa-sticky-note text-success
+            {% elif a.action_type == 'blog' %}fa-pen text-info
+            {% elif a.action_type == 'file' %}fa-file-upload text-primary
+            {% else %}fa-info-circle text-secondary
+            {% endif %}
+          fa-lg"></i>
+        </div>
+        <div>
+          <div class="fw-semibold">{{ a.description }}</div>
+          <small class="text-muted d-block mt-1">
+  👤 {{ a.username }} • 📆 {{ a.timestamp.strftime('%A') }} • 🗓️ {{ a.timestamp.strftime('%d %b %Y') }} • ⏰ {{ a.timestamp.strftime('%I:%M:%S %p') }}
+</small>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
   </main>
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2025 Chronicle Cloud. All rights reserved. | Made with ❤️ for your productivity</p>
-  </footer>
+    <p>&copy; 2025 {{ settings.site_name if settings else 'ChronicleCloud' }}. All rights reserved. | Made with❤️ for your productivity</p>
 
   <script>
     function toggleDarkMode() {
@@ -230,6 +407,7 @@
       }
     }
   </script>
+
 
 </body>
 </html>

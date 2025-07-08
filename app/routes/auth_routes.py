@@ -35,8 +35,15 @@ def logout():
     return redirect(url_for('main.index'))
 
 
+from app.models import User, Settings  # add Settings import
+
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
+    settings = Settings.query.get(1)
+    if settings and not settings.signup_enabled:
+        flash("User registration is currently disabled by the administrator.", "warning")
+        return redirect(url_for('auth.login'))
+
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
@@ -52,11 +59,15 @@ def signup():
 
         hashed_password = generate_password_hash(password)
         new_user = User(username=username, email=email, password_hash=hashed_password)
+
         db.session.add(new_user)
         db.session.commit()
 
         flash('Account created! You can now log in.', 'success')
         return redirect(url_for('auth.login'))
+
+    return render_template('signup.html')
+
 
     return render_template('signup.html')
 @auth_bp.route('/get_user_id', methods=['GET'])

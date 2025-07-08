@@ -1,34 +1,47 @@
 import os
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, send_file
+from flask import Blueprint, request, render_template, redirect, url_for, flash, send_file
 from werkzeug.utils import secure_filename
+from flask_login import current_user, login_required
 from app.models.file import db, File
+from app.utils.activity_logger import log_activity
+from app.models import User
+from pytz import timezone
+from datetime import datetime
 
-# Blueprint setup
 files_bp = Blueprint('files_bp', __name__, template_folder='../templates')
 
 # Constants
-UPLOAD_FOLDER = 'C:\\Users\\hh\\Chronicle_Cloud\\app\\static\\uploads'  # Correct path
+UPLOAD_FOLDER = 'C:\\Users\\hh\\Chronicle_Cloud\\app\\static\\uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'txt'}
 
-# Helper: check allowed file extensions
+# Check file extension
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Route: File list page
+# Route: View files
 @files_bp.route('/files')
+@login_required
 def list_files():
-    files = File.query.all()
+    files = File.query.order_by(File.id.desc()).all()
+
+    ist = timezone('Asia/Kolkata')
+
+    for f in files:
+        f.uploader = User.query.get(f.uploaded_by)
+        if f.uploaded_at:
+            f.uploaded_at_ist = f.uploaded_at.astimezone(ist)
+
     return render_template('files.html', files=files)
 
-# Route: Handle file upload
+# Route: Upload file
 @files_bp.route('/upload-file', methods=['POST'])
+@login_required
 def upload_file():
     if 'file' not in request.files:
         flash('No file part in the request', 'danger')
         return redirect(url_for('files_bp.list_files'))
 
     file = request.files['file']
-
     if file.filename == '':
         flash('No file selected', 'warning')
         return redirect(url_for('files_bp.list_files'))
@@ -37,44 +50,68 @@ def upload_file():
         filename = secure_filename(file.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
 
-        # Ensure upload folder exists
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         file.save(filepath)
 
-        # Save file metadata in the database
-        new_file = File(filename=filename, filepath=os.path.join('uploads', filename), tags='')  # Save relative path
+        # Save metadata with uploader info
+        new_file = File(
+            filename=filename,
+            filepath=os.path.join('uploads', filename),
+            tags='',
+            uploaded_by=current_user.id
+        )
         db.session.add(new_file)
         db.session.commit()
 
-        flash(f'File "{filename}" uploaded successfully!', 'success')
+        log_activity(current_user.id, "Uploaded File", f"File '{filename}' uploaded.")
+        flash(f'File \"{filename}\" uploaded successfully!', 'success')
         return redirect(url_for('files_bp.list_files'))
 
-    flash('Invalid file type. Only PDF, JPG, JPEG, PNG, and TXT are allowed.', 'danger')
+    flash('Invalid file type. Allowed: PDF, JPG, JPEG, PNG, TXT.', 'danger')
     return redirect(url_for('files_bp.list_files'))
 
 # Route: Download file
 @files_bp.route('/download-file/<int:file_id>')
+@login_required
 def download_file(file_id):
     file = File.query.get_or_404(file_id)
-    if not os.path.exists(os.path.join(UPLOAD_FOLDER, file.filename)):  # Use full path to check existence
-        flash('File not found.', 'danger')
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+
+    if not os.path.exists(filepath):
+        flash('File not found on the server.', 'danger')
         return redirect(url_for('files_bp.list_files'))
-    print(f"Attempting to send file from: {file.filepath}")
-    return send_file(os.path.join(UPLOAD_FOLDER, file.filename), as_attachment=True)
+
+    log_activity(current_user.id, "Downloaded File", f'File \"{file.filename}\" downloaded.')
+    return send_file(filepath, as_attachment=True)
 
 # Route: Delete file
 @files_bp.route('/delete-file/<int:file_id>', methods=['POST'])
+@login_required
 def delete_file(file_id):
     file = File.query.get_or_404(file_id)
+    uploader = User.query.get(file.uploaded_by)
+
+    if current_user.role != 'admin':
+        if file.uploaded_by != current_user.id:
+            flash('Access denied: You can only delete your own files.', 'danger')
+            return redirect(url_for('files_bp.list_files'))
+
+        if uploader and uploader.role == 'admin':
+            flash('Access denied: You cannot delete files uploaded by admins.', 'danger')
+            return redirect(url_for('files_bp.list_files'))
+
     try:
-        # Delete the file from the filesystem
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         if os.path.exists(filepath):
             os.remove(filepath)
-        # Delete the record from DB
+
         db.session.delete(file)
         db.session.commit()
-        flash(f'File "{file.filename}" deleted.', 'success')
+
+        log_activity(current_user.id, "Deleted File", f'File \"{file.filename}\" deleted.')
+        flash(f'File \"{file.filename}\" deleted successfully.', 'success')
     except Exception as e:
+        db.session.rollback()
         flash(f'Error deleting file: {str(e)}', 'danger')
+
     return redirect(url_for('files_bp.list_files'))

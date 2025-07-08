@@ -1,44 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Login</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login - ChronicleCloud</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(to right, #dfe9f3, #ffffff);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-floating > .form-control {
+      border-radius: 12px;
+    }
+
+    .form-control:focus {
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, #0062ff, #0051c3);
+      border: none;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(to right, #0051c3, #003b99);
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      z-index: 10;
+      color: #6c757d;
+    }
+
+    .alert {
+      border-radius: 8px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-  <div class="container mt-5">
-    <div class="card">
-      <div class="card-body">
-        <h3 class="text-center">Admin Login</h3>
-        <form method="POST" action="{{ url_for('admin.admin_login') }}">
-          <div class="mb-3">
-            <label for="email" class="form-label">Admin Email</label>
-            <input type="email" class="form-control" id="email" name="email" placeholder="Enter admin email" required>
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
-          </div>
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }} text-center" role="alert">
-                  {{ message }}
-                </div>
-              {% endfor %}
-            {% endif %}
-          {% endwith %}
-          <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-        
-        <div class="text-center mt-3">
-          <p>Don't have an account? 
-            <a href="{{ url_for('auth.signup') }}">Sign up here</a>
-          </p>
-        </div>
+
+  <div class="login-card">
+    <h3 class="text-center mb-4 text-primary"><i class="bi bi-lock-fill me-2"></i>Admin Login</h3>
+
+    <form method="POST" action="{{ url_for('admin.admin_login') }}">
+      <div class="form-floating mb-3 position-relative">
+        <input type="email" class="form-control" id="email" name="email" placeholder="Admin Email" required>
+        <label for="email"><i class="bi bi-envelope-fill me-2"></i>Email</label>
       </div>
+
+      <div class="form-floating mb-3 position-relative">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+        <label for="password"><i class="bi bi-shield-lock-fill me-2"></i>Password</label>
+        <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} text-center" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+      </button>
+    </form>
+
+    <div class="text-center mt-4">
+      <p class="mb-0">Don't have an account?
+        <a href="{{ url_for('auth.signup') }}" class="text-decoration-none fw-semibold text-primary">
+          Sign up here
+        </a>
+      </p>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePassword.classList.toggle('bi-eye');
+      togglePassword.classList.toggle('bi-eye-slash');
+    });
+  </script>
 </body>
 </html>

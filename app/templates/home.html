@@ -144,14 +144,23 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card feature-card shadow-sm border-0">
-                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df" class="card-img-top" alt="Collaboration">
-                <div class="card-body">
-                    <h5 class="card-title">Real-time Collaboration</h5>
-                    <p class="card-text">Team up with classmates and work on projects together in real-time.</p>
-                </div>
-            </div>
-        </div>
+  <div class="card feature-card shadow-sm border-0">
+    <img src="https://cdn-icons-png.flaticon.com/512/4872/4872335.png" 
+     class="card-img-top" 
+     alt="AI Search" 
+     style="width: 100%; height: 200px; object-fit: contain; background-color: #fff; padding: 10px;">
+
+    <div class="card-body">
+      <h5 class="card-title">AI Smart Search</h5>
+      <p class="card-text">Search your notes, blogs, and files with natural language using our AI Assistant.</p>
+      
+
+    </div>
+  </div>
+</div>
+
+
+
     </div>
 </section>
 
@@ -234,22 +243,67 @@
     </div>
 </section>
 
-<!-- Newsletter Signup -->
-
+<!-- Daily Productivity Tip -->
 <section class="container mt-5">
-    <h2 class="text-center mb-4">Stay Updated</h2>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <form>
-                <div class="input-group mb-3">
-                    <input type="email" class="form-control" placeholder="Enter your email for updates" required>
-                    <button class="btn btn-primary" type="submit">Subscribe</button>
-                </div>
-                <div class="form-text text-muted text-center">We value your privacy and won't spam you.</div>
-            </form>
+  <h2 class="text-center mb-4">💡 Daily Productivity Tip</h2>
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="tip-card p-4 text-center mx-auto">
+        <div class="glow-icon mb-3">
+          <i class="fas fa-lightbulb fa-3x text-warning"></i>
         </div>
+        <p id="dailyTip" class="tip-text fw-semibold">Loading today's tip...</p>
+      </div>
     </div>
+  </div>
 </section>
+
+<!-- Styles -->
+<style>
+  .tip-card {
+    background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+    border-radius: 15px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    font-size: 1.2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glow-icon {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+
+  .tip-text {
+    color: #333;
+    padding: 10px 20px;
+    animation: typing 2s steps(40, end) 1;
+    white-space: pre-line;
+  }
+
+  @keyframes typing {
+    from { width: 0; opacity: 0.3; }
+    to { width: 100%; opacity: 1; }
+  }
+</style>
+
+<!-- Script -->
+<script>
+  fetch('/daily-tip')
+    .then(res => res.json())
+    .then(data => {
+      const tipEl = document.getElementById('dailyTip');
+      tipEl.textContent = data.tip;
+    })
+    .catch(() => {
+      document.getElementById('dailyTip').textContent = "Failed to load tip. Try again later.";
+    });
+</script>
+
 
 <!-- CTA Banner -->
 
