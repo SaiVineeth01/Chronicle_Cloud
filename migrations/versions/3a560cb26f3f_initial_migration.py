@@ -1,8 +1,8 @@
-"""Add recipient_id to File model
+"""initial migration
 
-Revision ID: 05e60d756575
+Revision ID: 3a560cb26f3f
 Revises: 
-Create Date: 2025-07-08 23:51:35.571682
+Create Date: 2025-07-09 16:58:14.978138
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '05e60d756575'
+revision = '3a560cb26f3f'
 down_revision = None
 branch_labels = None
 depends_on = None
