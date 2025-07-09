@@ -7,9 +7,14 @@ import os
 
 load_dotenv()
 
+# ✅ Ensure /tmp/ DB path is initialized for Render
+if os.environ.get("RENDER"):
+    os.makedirs("/tmp", exist_ok=True)
+    open("/tmp/chroniclecloud.db", 'a').close()
+
 app = create_app()
 
-# Create DB only once
+# ✅ Create DB tables (only once in app context)
 with app.app_context():
     db.create_all()
 
