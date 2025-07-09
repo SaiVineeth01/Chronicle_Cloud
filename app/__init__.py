@@ -32,7 +32,8 @@ def create_app():
 
     # ✔ SQLite DB path based on environment (Render or local)
     if os.environ.get("RENDER"):
-        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/chroniclecloud.db"
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")  # ← Use NeonDB URL via env var
+
 
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///../database/chroniclecloud.db"
