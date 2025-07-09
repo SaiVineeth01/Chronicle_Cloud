@@ -1,3 +1,8 @@
+
+import eventlet
+eventlet.monkey_patch()
+
+
 from app import create_app, db, socketio
 from dotenv import load_dotenv
 import os
