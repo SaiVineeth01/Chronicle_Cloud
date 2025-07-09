@@ -8,7 +8,6 @@ Flask-SocketIO
 python-dotenv
 eventlet
 gunicorn
-psycopg2-binary
 flask-bcrypt
 pytz
 yake
