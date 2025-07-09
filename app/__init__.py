@@ -4,16 +4,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from dotenv import load_dotenv
-from flask_wtf.csrf import CSRFProtect
 from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 import logging
-
+import eventlet
+eventlet.monkey_patch()
 # Load environment variables
 load_dotenv()
 
-# Initialize extensions
+# Initialize extensions globally (outside app context)
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 socketio = SocketIO(cors_allowed_origins="*")
@@ -28,16 +28,18 @@ def create_app():
         static_folder=os.path.join(os.path.dirname(__file__), 'static')
     )
 
+    # Basic config
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_default_key')
 
-    # ✔ SQLite DB path based on environment (Render or local)
-    if os.environ.get("RENDER"):
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")  # ← Use NeonDB URL via env var
+    # ✅ NeonDB connection
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable not set!")
 
+    if "sslmode" not in database_url:
+        database_url += "?sslmode=require"
 
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///../database/chroniclecloud.db"
-
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -47,14 +49,17 @@ def create_app():
     bcrypt.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
-    socketio.init_app(app)
+    
+    # ⚠ Only initialize socketio during actual server run, not migrations
+    if not os.environ.get("FLASK_SKIP_SOCKETIO"):
+        socketio.init_app(app)
 
-    # Logging
+    # Logging setup
     logging.basicConfig(level=logging.INFO)
     app.logger.addHandler(logging.StreamHandler())
     app.logger.setLevel(logging.INFO)
 
-    # Maintenance check
+    # Maintenance mode (skip during CLI calls)
     from app.controllers.admin_controller import get_settings
 
     @app.before_request
@@ -63,7 +68,7 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
-    # Update last seen for logged-in users
+    # Last seen timestamp
     @app.before_request
     def update_last_seen():
         if current_user.is_authenticated:
@@ -90,7 +95,7 @@ def create_app():
     for bp in blueprints:
         app.register_blueprint(bp)
 
-    # Jinja2 custom date filter
+    # Jinja2 filters
     def format_date(value, format='%Y-%m-%d'):
         if isinstance(value, datetime):
             return value.strftime(format)
@@ -104,7 +109,7 @@ def create_app():
 
     return app
 
-# Flask-Login user loader
+# Load user callback for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     from app.models.user import User
