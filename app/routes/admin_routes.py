@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.models import User, Note, Blog, Settings, Subscriber
+from app.models import User, Note, Blog, Settings
 from app import db
 from flask_login import login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash
@@ -71,8 +71,7 @@ def admin_dashboard():
         return redirect(url_for('admin.admin_login'))
 
     user_count = User.query.count()
-    subscriber_count = Subscriber.query.count()
-    recent_subscribers = Subscriber.query.order_by(Subscriber.subscribed_at.desc()).limit(5).all()
+    
     
     testimonial_count = Testimonial.query.count()
     recent_testimonials = Testimonial.query.order_by(Testimonial.created_at.desc()).limit(5).all()
@@ -82,8 +81,8 @@ def admin_dashboard():
 
     return render_template('admin/admin_dashboard.html',
                            user_count=user_count,
-                           subscriber_count=subscriber_count,
-                           recent_subscribers=recent_subscribers,
+                           
+                           
                            testimonial_count=testimonial_count,
                            recent_testimonials=recent_testimonials,
                            activity_count=activity_count,
