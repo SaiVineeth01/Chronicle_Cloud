@@ -18,3 +18,5 @@ spacy
 langdetect
 pyspellchecker
 scikit-learn
+Pillow
+bs4
