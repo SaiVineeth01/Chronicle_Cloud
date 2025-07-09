@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 
 # Load NLP model
-nlp = spacy.load("en_core_web_md")  # ✅ more accurate
+nlp = spacy.load("en_core_web_sm")
 spell = SpellChecker()
 
 # Robust paths
