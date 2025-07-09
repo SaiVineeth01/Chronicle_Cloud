@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -7,7 +8,6 @@ from flask_wtf.csrf import CSRFProtect
 from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
 from datetime import datetime
-import os
 import logging
 
 # Load environment variables
@@ -22,19 +22,25 @@ login_manager.login_view = 'auth.login'
 migrate = Migrate()
 
 def create_app():
-    app = Flask(__name__,
+    app = Flask(
+        __name__,
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
-        static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+        static_folder=os.path.join(os.path.dirname(__file__), 'static')
+    )
 
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_default_key')
 
-    # Use SQLite DB in Render's persistent folder
-    db_path = '/data/chroniclecloud.db' if os.environ.get('RENDER') else 'sqlite:///../database/chroniclecloud.db'
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    # ✔ SQLite DB path based on environment (Render or local)
+    if os.environ.get("RENDER"):
+        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////data/chroniclecloud.db"
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///../database/chroniclecloud.db"
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
+    # Initialize extensions
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
@@ -46,6 +52,7 @@ def create_app():
     app.logger.addHandler(logging.StreamHandler())
     app.logger.setLevel(logging.INFO)
 
+    # Maintenance check
     from app.controllers.admin_controller import get_settings
 
     @app.before_request
@@ -54,6 +61,7 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
+    # Update last seen for logged-in users
     @app.before_request
     def update_last_seen():
         if current_user.is_authenticated:
@@ -80,7 +88,7 @@ def create_app():
     for bp in blueprints:
         app.register_blueprint(bp)
 
-    # Jinja date formatter
+    # Jinja2 custom date filter
     def format_date(value, format='%Y-%m-%d'):
         if isinstance(value, datetime):
             return value.strftime(format)
@@ -94,11 +102,13 @@ def create_app():
 
     return app
 
+# Flask-Login user loader
 @login_manager.user_loader
 def load_user(user_id):
     from app.models.user import User
     return User.query.get(int(user_id))
 
+# SocketIO events
 @socketio.on('connect')
 def handle_connect():
     print('✅ Client connected')
