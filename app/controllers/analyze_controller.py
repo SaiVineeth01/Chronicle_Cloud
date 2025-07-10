@@ -11,14 +11,22 @@ from sklearn.decomposition import LatentDirichletAllocation
 nlp = spacy.load("en_core_web_sm")
 spell = SpellChecker()
 
-# Robust paths
+# Base directory
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-toxicity_model_path = os.path.join(base_dir, 'models', 'toxicity_model.pkl')
-emotion_model_path = os.path.join(base_dir, 'models', 'emotion_model.pkl')
 
-# Load trained models
-toxicity_model, tox_vectorizer = joblib.load(toxicity_model_path)
-emotion_model, emo_vectorizer = joblib.load(emotion_model_path)
+# Paths to models and vectorizers
+toxicity_model_path = os.path.join(base_dir, 'models', 'toxicity_model.pkl')
+tox_vectorizer_path = os.path.join(base_dir, 'models', 'tox_vectorizer.pkl')
+
+emotion_model_path = os.path.join(base_dir, 'models', 'emotion_model.pkl')
+emo_vectorizer_path = os.path.join(base_dir, 'models', 'vectorizer.pkl')
+
+# ✅ Load models and their corresponding vectorizers
+toxicity_model = joblib.load(toxicity_model_path)
+tox_vectorizer = joblib.load(tox_vectorizer_path)
+
+emotion_model = joblib.load(emotion_model_path)
+emo_vectorizer = joblib.load(emo_vectorizer_path)
 
 # ✅ Clean text
 def clean_text(text):
