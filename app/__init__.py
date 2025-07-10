@@ -8,8 +8,7 @@ from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 import logging
-import eventlet
-eventlet.monkey_patch()
+
 
 # Load environment variables from .env
 load_dotenv()
