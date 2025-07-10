@@ -10,80 +10,55 @@ from datetime import datetime
 import logging
 import eventlet
 eventlet.monkey_patch()
-# Load environment variables
 
-
-# Load environment variables from .env file
-
+# Load environment variables from .env
 load_dotenv()
 
-# Initialize extensions globally (outside app context)
+# Global extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 socketio = SocketIO(cors_allowed_origins="*")
 login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
 migrate = Migrate()
 
+
 def create_app():
-    app = Flask(
-        __name__,
-        template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
-        static_folder=os.path.join(os.path.dirname(__file__), 'static')
-    )
+    app = Flask(__name__, template_folder="templates", static_folder="static")
 
+    # Secret Key from .env
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    if not app.config['SECRET_KEY']:
+        raise RuntimeError("❌ SECRET_KEY not set in .env")
 
-    # Basic config
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_default_key')
+    # Neon PostgreSQL URL from .env
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("❌ DATABASE_URL not set in .env")
 
-    # ✅ NeonDB connection
+    if "sslmode" not in db_url:
+        db_url += "?sslmode=require"
 
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback_default_key')
-
-    # ✅ Configure database URI from environment (NeonDB)
-
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL environment variable not set!")
-
-    if "sslmode" not in database_url:
-        database_url += "?sslmode=require"
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-
     # Initialize extensions
-
-    # Initialize Flask extensions
-
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
 
-    
-    # ⚠ Only initialize socketio during actual server run, not migrations
+    # Initialize SocketIO only if not skipping
     if not os.environ.get("FLASK_SKIP_SOCKETIO"):
         socketio.init_app(app)
 
-    # Logging setup
-
-    socketio.init_app(app)
-
-    # Logging
-
+    # Setup Logging
     logging.basicConfig(level=logging.INFO)
     app.logger.addHandler(logging.StreamHandler())
     app.logger.setLevel(logging.INFO)
 
-
-    # Maintenance mode (skip during CLI calls)
-
-    # Maintenance mode check
-
+    # Maintenance Mode
     from app.controllers.admin_controller import get_settings
 
     @app.before_request
@@ -92,22 +67,14 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
-
-    # Last seen timestamp
-
-    # Track last seen for logged-in users
-
+    # Track last seen timestamp
     @app.before_request
     def update_last_seen():
         if current_user.is_authenticated:
             current_user.last_seen = datetime.utcnow()
             db.session.commit()
 
-
-    # Register blueprints
-
     # Register all blueprints
-
     from app.routes import (
         auth_routes, main_routes, dashboard_routes, content_routes, blog_routes,
         home_routes, files_routes, search_routes, upload_routes, admin_routes,
@@ -115,10 +82,7 @@ def create_app():
         ai_routes, analyze_routes, testimonial_routes
     )
 
-
-
-
-    blueprints = [
+    all_blueprints = [
         auth_routes.auth_bp, main_routes.main, dashboard_routes.dashboard_bp,
         content_routes.content_bp, blog_routes.blog_bp, home_routes.home_bp,
         files_routes.files_bp, search_routes.search_bp, upload_routes.upload_bp,
@@ -128,25 +92,15 @@ def create_app():
         subscription_routes.subscription_bp
     ]
 
-
-
-
     app.register_blueprint(notifications_routes.notifications_bp, url_prefix='/notifications')
-    for bp in blueprints:
+    for bp in all_blueprints:
         app.register_blueprint(bp)
 
-
-    # Jinja2 filters
-
-    # Jinja2 filter to format dates
-
+    # Jinja2 Filters
     def format_date(value, format='%Y-%m-%d'):
         if isinstance(value, datetime):
             return value.strftime(format)
         return value
-
-
-
     app.jinja_env.filters['date'] = format_date
 
     @app.context_processor
@@ -157,30 +111,22 @@ def create_app():
     return app
 
 
-# Load user callback for Flask-Login
-
-# Load user function for Flask-Login
-
 @login_manager.user_loader
 def load_user(user_id):
     from app.models.user import User
     return User.query.get(int(user_id))
 
 
-# SocketIO events
-
-# Socket.IO events
-
+# SocketIO Events
 @socketio.on('connect')
 def handle_connect():
     print('✅ Client connected')
+
 
 @socketio.on('disconnect')
 def handle_disconnect():
     print('🚫 Client disconnected')
 
 
-
-# Export required objects
-
+# Exported
 __all__ = ['create_app', 'db', 'migrate']
