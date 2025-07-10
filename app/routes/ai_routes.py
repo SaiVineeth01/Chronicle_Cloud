@@ -19,7 +19,11 @@ def keyword_page():
 @ai_routes.route('/sentiment', methods=['GET', 'POST'])
 def sentiment():
     result = None
+    input_text = ""
+
     if request.method == 'POST':
-        text = request.form.get('text')
-        result = analyze_sentiment(text)
-    return render_template('sentiment.html', result=result)
+        input_text = request.form.get('text', '')
+        if input_text:
+            result = analyze_sentiment(input_text)
+
+    return render_template('sentiment.html', input_text=input_text, result=result)
