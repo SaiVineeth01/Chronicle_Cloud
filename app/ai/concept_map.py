@@ -1,29 +1,36 @@
-# app/ai/concept_map.py
-
 import spacy
 import networkx as nx
 from bs4 import BeautifulSoup
+from networkx.readwrite import json_graph
 
-# Load spaCy model
+# Load spaCy English model
 nlp = spacy.load("en_core_web_sm")
 
 def generate_concept_map(text):
-    # Clean HTML if any
+    # Clean HTML tags
     clean_text = BeautifulSoup(text, "html.parser").get_text()
-
-    # Process text with spaCy
     doc = nlp(clean_text)
-    G = nx.DiGraph()  # Directed graph
+
+    G = nx.DiGraph()
 
     for sent in doc.sents:
-        nouns = [token.text for token in sent if token.pos_ in ["NOUN", "PROPN"]]
-        verbs = [token.lemma_ for token in sent if token.pos_ == "VERB"]
+        span = sent.as_doc()
 
-        # Add nodes and edges (noun → noun, noun → verb)
-        for i in range(len(nouns) - 1):
-            G.add_edge(nouns[i], nouns[i + 1])
-        for noun in nouns:
+        # Extract subjects, verbs, and objects more accurately
+        subjects = [token for token in span if token.dep_ in ("nsubj", "nsubjpass")]
+        verbs = [token for token in span if token.pos_ == "VERB"]
+        objects = [token for token in span if token.dep_ in ("dobj", "pobj", "attr", "oprd")]
+
+        for subj in subjects:
             for verb in verbs:
-                G.add_edge(noun, verb)
+                G.add_edge(subj.lemma_.lower(), verb.lemma_.lower())
+                for obj in objects:
+                    G.add_edge(verb.lemma_.lower(), obj.lemma_.lower())
 
-    return nx.node_link_data(G)  # JSON serializable
+    # Optionally add named entities as relationships
+    for ent in doc.ents:
+        if ent.label_ in ("ORG", "PERSON", "GPE", "EVENT"):
+            G.add_node(ent.text.strip())
+
+    return json_graph.node_link_data(G, edges="links")
+
