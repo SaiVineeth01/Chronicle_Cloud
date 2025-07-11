@@ -1,2 +1,36 @@
-venv/ 
+# Virtual environment
+venv/
+
+# Environment variable file
 .env
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# SQLite / PostgreSQL DBs (if any)
+*.db
+
+# Virtual environment
+venv/
+
+# Environment variable file
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# SQLite / PostgreSQL DBs (if any)
+*.db
+
+# VS Code or PyCharm settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+
+# Logs
+*.log
