@@ -1,10 +1,11 @@
 # 🛠 Critical compatibility fixes
+numpy==1.23.5
+thinc==8.1.12
+spacy==3.7.2
 gevent==23.9.1
 eventlet==0.33.1
 dnspython==2.2.1
 gunicorn==20.1.0
-
-
 Flask
 Flask-SQLAlchemy
 Flask-Migrate
@@ -13,8 +14,6 @@ Flask-WTF
 Werkzeug
 Flask-SocketIO
 python-dotenv
-eventlet==0.33.1
-gunicorn==20.1.0
 psycopg2-binary
 flask-bcrypt
 pytz
@@ -28,9 +27,7 @@ Pillow
 bs4
 spacy
 dnspython==2.2.1
-spacy==3.7.2
 pydantic==1.10.13
-thinc==8.1.12
 srsly==2.4.8
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
 
