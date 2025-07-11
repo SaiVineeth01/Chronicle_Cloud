@@ -1,5 +1,4 @@
 import os
-import threading
 import logging
 from datetime import datetime
 from flask import Flask, render_template, request
@@ -69,15 +68,15 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
-    # Safe background thread to commit user last_seen
-    def update_last_seen_async(user):
-        user.last_seen = datetime.utcnow()
-        db.session.commit()
-
+    # Safely update last_seen
     @app.before_request
     def update_last_seen():
-        if current_user.is_authenticated:
-            threading.Thread(target=update_last_seen_async, args=(current_user,)).start()
+        if current_user.is_authenticated and hasattr(current_user, 'last_seen'):
+            try:
+                current_user.last_seen = datetime.utcnow()
+                db.session.commit()
+            except Exception as e:
+                app.logger.warning(f"Could not update last_seen: {e}")
 
     # Register all blueprints
     from app.routes import (
