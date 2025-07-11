@@ -6,7 +6,7 @@ Flask-WTF
 Werkzeug
 Flask-SocketIO
 python-dotenv
-eventlet==0.33.3
+eventlet==0.33.1
 gunicorn==20.1.0
 psycopg2-binary
 flask-bcrypt
