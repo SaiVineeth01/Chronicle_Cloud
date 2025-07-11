@@ -1,6 +1,6 @@
-# app/controllers/notifications_controller.py
-
 from app.models.notification import Notification
+from datetime import datetime
+import pytz
 
 def get_notifications(user_id):
     from app import db
@@ -24,6 +24,8 @@ def delete_all_notifications(user_id):
 
 def create_notification(user_id, message, notif_type='info'):
     from app import db, socketio
+
+    # Create new notification (UTC time will be used in DB)
     new_notification = Notification(
         user_id=user_id,
         message=message,
@@ -32,11 +34,15 @@ def create_notification(user_id, message, notif_type='info'):
     db.session.add(new_notification)
     db.session.commit()
 
-    # Prepare notification data
+    # ✅ Convert UTC time to IST for client-side display
+    ist = pytz.timezone('Asia/Kolkata')
+    ist_created_at = new_notification.created_at.astimezone(ist)
+
+    # Prepare notification data to send over WebSocket
     notification_data = {
         'id': new_notification.id,
         'message': new_notification.message,
-        'created_at': new_notification.created_at.strftime("%Y-%m-%d %H:%M"),
+        'created_at': ist_created_at.strftime("%d-%m-%Y %I:%M %p"),
         'read': new_notification.read,
         'type': new_notification.type,
     }
