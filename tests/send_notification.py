@@ -50,17 +50,17 @@ def send_notification_to_user(user_id, message, notif_type='info'):
 if __name__ == '__main__':
     send_notification_to_user(
         1,
-        "📬 Admin sent you an update! Hi!!! Please update when you get this notification.",
+        "📬 Hi Pavan!!! You have seminar on monday! Be ready.",
         "info"
     )
     send_notification_to_user(
-        5,
-        "🚀 Welcome to our world!",
+        1,
+        "🚀 Successfully uploaded the blog",
         "success"
     )
     send_notification_to_user(
-        5,
-        "🚨 Hey Kane! Please follow the rules and regulations of our community. Thank you!",
+        1,
+        "🚨 Hey Pavan! Please follow the rules and regulations of our community. Thank you!",
         "warning"
     )
 

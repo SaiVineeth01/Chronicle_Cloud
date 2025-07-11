@@ -8,7 +8,6 @@ from .blog import Blog
 
 from .notification import Notification
 from .settings import Settings
-from .subscriber import Subscriber
 from .testimonial import Testimonial   # ✅ Include testimonial model
 from .activity import Activity 
 

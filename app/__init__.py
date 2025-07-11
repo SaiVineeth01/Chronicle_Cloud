@@ -8,8 +8,7 @@ from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 import logging
-import eventlet
-eventlet.monkey_patch()
+
 
 # Load environment variables from .env
 load_dotenv()
@@ -24,6 +23,7 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
+    
 
     # Secret Key from .env
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -47,6 +47,9 @@ def create_app():
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'  # make sure 'auth.login' matches your actual login route endpoint name
+    login_manager.login_message = "Please log in to access this page."
+    login_manager.login_message_category = "info"
     migrate.init_app(app, db)
 
     # Initialize SocketIO only if not skipping
@@ -78,8 +81,7 @@ def create_app():
     from app.routes import (
         auth_routes, main_routes, dashboard_routes, content_routes, blog_routes,
         home_routes, files_routes, search_routes, upload_routes, admin_routes,
-        notes_routes, notifications_routes, concept_routes, subscription_routes,
-        ai_routes, analyze_routes, testimonial_routes
+        notes_routes, notifications_routes, concept_routes,ai_routes,analyze_routes,testimonial_routes
     )
 
     all_blueprints = [
@@ -89,7 +91,7 @@ def create_app():
         admin_routes.admin_bp, notes_routes.notes_bp, ai_routes.ai_routes,
         testimonial_routes.testimonial_bp, analyze_routes.analyze_bp,
         analyze_routes.toxicity_bp, concept_routes.concept_bp,
-        subscription_routes.subscription_bp
+        
     ]
 
     app.register_blueprint(notifications_routes.notifications_bp, url_prefix='/notifications')
