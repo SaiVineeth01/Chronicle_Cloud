@@ -9,7 +9,6 @@ python-dotenv
 eventlet==0.33.3
 gunicorn==20.1.0
 psycopg2-binary
-
 flask-bcrypt
 pytz
 yake
