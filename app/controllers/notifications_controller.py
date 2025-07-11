@@ -28,7 +28,9 @@ def create_notification(user_id, message, notif_type='info'):
     new_notification = Notification(
         user_id=user_id,
         message=message,
-        type=notif_type
+        type=notif_type,
+        note_id=note_id,  
+        file_id=file_id
     )
     db.session.add(new_notification)
     db.session.commit()

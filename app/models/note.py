@@ -12,11 +12,13 @@ class Note(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved = db.Column(db.Boolean, default=False)
 
-    # Foreign key
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
 
     # Relationship to User
     user = db.relationship('User', back_populates='notes')
+
+    # ✅ Add reverse relationship to notifications
+    notifications = db.relationship('Notification', back_populates='note', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Note {self.title}>'
