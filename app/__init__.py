@@ -1,4 +1,7 @@
 import os
+import threading
+import logging
+from datetime import datetime
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -6,9 +9,6 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
-from datetime import datetime
-import logging
-
 
 # Load environment variables from .env
 load_dotenv()
@@ -23,7 +23,6 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
-    
 
     # Secret Key from .env
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -47,12 +46,12 @@ def create_app():
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'  # make sure 'auth.login' matches your actual login route endpoint name
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = "Please log in to access this page."
     login_manager.login_message_category = "info"
     migrate.init_app(app, db)
 
-    # Initialize SocketIO only if not skipping
+    # Initialize SocketIO
     if not os.environ.get("FLASK_SKIP_SOCKETIO"):
         socketio.init_app(app)
 
@@ -70,18 +69,22 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
-    # Track last seen timestamp
+    # Safe background thread to commit user last_seen
+    def update_last_seen_async(user):
+        user.last_seen = datetime.utcnow()
+        db.session.commit()
+
     @app.before_request
     def update_last_seen():
         if current_user.is_authenticated:
-            current_user.last_seen = datetime.utcnow()
-            db.session.commit()
+            threading.Thread(target=update_last_seen_async, args=(current_user,)).start()
 
     # Register all blueprints
     from app.routes import (
         auth_routes, main_routes, dashboard_routes, content_routes, blog_routes,
         home_routes, files_routes, search_routes, upload_routes, admin_routes,
-        notes_routes, notifications_routes, concept_routes,ai_routes,analyze_routes,testimonial_routes
+        notes_routes, notifications_routes, concept_routes, ai_routes,
+        analyze_routes, testimonial_routes
     )
 
     all_blueprints = [
@@ -91,7 +94,6 @@ def create_app():
         admin_routes.admin_bp, notes_routes.notes_bp, ai_routes.ai_routes,
         testimonial_routes.testimonial_bp, analyze_routes.analyze_bp,
         analyze_routes.toxicity_bp, concept_routes.concept_bp,
-        
     ]
 
     app.register_blueprint(notifications_routes.notifications_bp, url_prefix='/notifications')
@@ -103,6 +105,7 @@ def create_app():
         if isinstance(value, datetime):
             return value.strftime(format)
         return value
+
     app.jinja_env.filters['date'] = format_date
 
     @app.context_processor
