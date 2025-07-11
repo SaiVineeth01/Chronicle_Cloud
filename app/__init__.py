@@ -5,11 +5,10 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
-from dotenv import load_dotenv
 from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
+from dotenv import load_dotenv
 
-# Load environment variables from .env
 load_dotenv()
 
 # Global extensions
@@ -23,16 +22,14 @@ migrate = Migrate()
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
-    # Secret Key from .env
+    # ✅ Read from environment variables (already loaded in main.py)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    db_url = os.getenv("DATABASE_URL")
+
     if not app.config['SECRET_KEY']:
         raise RuntimeError("❌ SECRET_KEY not set in .env")
-
-    # Neon PostgreSQL URL from .env
-    db_url = os.getenv("DATABASE_URL")
     if not db_url:
         raise RuntimeError("❌ DATABASE_URL not set in .env")
-
     if "sslmode" not in db_url:
         db_url += "?sslmode=require"
 
@@ -41,25 +38,23 @@ def create_app():
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-    # Initialize extensions
+    # 🔧 Initialize Flask extensions
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
+    socketio.init_app(app)
+
     login_manager.login_view = 'auth.login'
     login_manager.login_message = "Please log in to access this page."
     login_manager.login_message_category = "info"
-    migrate.init_app(app, db)
 
-    # Initialize SocketIO
-    if not os.environ.get("FLASK_SKIP_SOCKETIO"):
-        socketio.init_app(app)
-
-    # Setup Logging
+    # ✅ Logging
     logging.basicConfig(level=logging.INFO)
     app.logger.addHandler(logging.StreamHandler())
     app.logger.setLevel(logging.INFO)
 
-    # Maintenance Mode
+    # ✅ Before request: Maintenance mode
     from app.controllers.admin_controller import get_settings
 
     @app.before_request
@@ -68,7 +63,6 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
-    # Safely update last_seen
     @app.before_request
     def update_last_seen():
         if current_user.is_authenticated and hasattr(current_user, 'last_seen'):
@@ -78,7 +72,7 @@ def create_app():
             except Exception as e:
                 app.logger.warning(f"Could not update last_seen: {e}")
 
-    # Register all blueprints
+    # ✅ Register blueprints
     from app.routes import (
         auth_routes, main_routes, dashboard_routes, content_routes, blog_routes,
         home_routes, files_routes, search_routes, upload_routes, admin_routes,
@@ -94,19 +88,18 @@ def create_app():
         testimonial_routes.testimonial_bp, analyze_routes.analyze_bp,
         analyze_routes.toxicity_bp, concept_routes.concept_bp,
     ]
-
     app.register_blueprint(notifications_routes.notifications_bp, url_prefix='/notifications')
     for bp in all_blueprints:
         app.register_blueprint(bp)
 
-    # Jinja2 Filters
+    # ✅ Jinja filter
     def format_date(value, format='%Y-%m-%d'):
         if isinstance(value, datetime):
             return value.strftime(format)
         return value
-
     app.jinja_env.filters['date'] = format_date
 
+    # ✅ Inject settings into all templates
     @app.context_processor
     def inject_site_settings():
         from app.models import Settings
@@ -115,13 +108,14 @@ def create_app():
     return app
 
 
+# Flask-Login user loader
 @login_manager.user_loader
 def load_user(user_id):
     from app.models.user import User
     return User.query.get(int(user_id))
 
 
-# SocketIO Events
+# ✅ SocketIO events
 @socketio.on('connect')
 def handle_connect():
     print('✅ Client connected')
@@ -132,5 +126,5 @@ def handle_disconnect():
     print('🚫 Client disconnected')
 
 
-# Exported
+# Exported symbols
 __all__ = ['create_app', 'db', 'migrate']

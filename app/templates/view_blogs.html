@@ -56,15 +56,14 @@
             margin: 0;
         }
         .card-header h5 {
-    margin: 0;
-    font-size: 1.25rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    flex-wrap: wrap; /* allow wrapping */
-    word-break: break-word;
-}
-
+            margin: 0;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+            word-break: break-word;
+        }
         .card-header .category {
             font-size: 0.95rem;
             margin-top: 8px;
@@ -83,12 +82,10 @@
             align-items: center;
             gap: 5px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            
         }
         .card-body {
             padding: 20px;
             font-size: 1rem;
-            
         }
         .card-body p {
             text-align: justify;
@@ -143,19 +140,24 @@
 
 <!-- Toggle Mode Button -->
 <div class="theme-toggle">
+    <!-- Back to Dashboard Button -->
+<div class="ms-3 mt-4 mb-2">
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-primary rounded-pill">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
     <button class="btn btn-outline-dark rounded-pill" id="toggleThemeBtn">
         <i class="fas fa-moon"></i> Toggle Dark Mode
     </button>
 </div>
 
 <div class="container py-5">
-    <!-- Page Header -->
     <div class="page-title">
         <h1 class="fw-bold">📝 My Blogs</h1>
         <p class="text-muted">Create, browse, and manage your blog posts with ease. Enhance your writing experience.</p>
     </div>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -167,12 +169,10 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Search Bar -->
     <div class="search-bar mb-4">
         <input type="text" class="form-control form-control-lg" placeholder="🔍 Search blogs..." onkeyup="searchBlogs(this.value)">
     </div>
 
-    <!-- View All Blogs -->
     <div class="row g-4" id="blogsContainer">
         {% for blog in blogs %}
             <div class="col-md-6 col-lg-4 blog-item">
@@ -183,7 +183,6 @@
                         <div class="date-badge">
                             <i class="fas fa-calendar-alt"></i>
                             <strong>Date:</strong> {{ blog.created_at.strftime('%d-%m-%Y') }}
-
                         </div>
                         {% if blog.user %}
                             <div class="mt-2 d-flex align-items-center gap-2">
@@ -229,8 +228,7 @@
                         <div class="modal-body">
                             <p><strong>📝 Title:</strong> {{ blog.title }}</p>
                             <p><strong>🗂️ Category:</strong> {{ blog.category or 'Uncategorized' }}</p>
-                            <p><strong>📅 Published:</strong> {{ blog.created_at.strftime('%d-%m-%Y') }}
-</p>
+                            <p><strong>📅 Published:</strong> {{ blog.created_at.strftime('%d-%m-%Y') }}</p>
                             <hr>
                             <p>{{ blog.content }}</p>
                         </div>
@@ -262,6 +260,12 @@
             const text = blog.innerText.toLowerCase();
             blog.style.display = text.includes(query.toLowerCase()) ? 'block' : 'none';
         });
+    }
+
+    // ✅ One-time reload to show updated blog image
+    if (performance.navigation.type === 1 && sessionStorage.getItem('newBlogCreated')) {
+        sessionStorage.removeItem('newBlogCreated');
+        location.reload();
     }
 </script>
 
