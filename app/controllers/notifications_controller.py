@@ -25,7 +25,6 @@ def delete_all_notifications(user_id):
 def create_notification(user_id, message, notif_type='info'):
     from app import db, socketio
 
-    # Create new notification (UTC time will be used in DB)
     new_notification = Notification(
         user_id=user_id,
         message=message,
@@ -34,20 +33,18 @@ def create_notification(user_id, message, notif_type='info'):
     db.session.add(new_notification)
     db.session.commit()
 
-    # ✅ Convert UTC time to IST for client-side display
+    # Convert UTC → IST for emit
     ist = pytz.timezone('Asia/Kolkata')
     ist_created_at = new_notification.created_at.astimezone(ist)
 
-    # Prepare notification data to send over WebSocket
     notification_data = {
         'id': new_notification.id,
         'message': new_notification.message,
-        'created_at': ist_created_at.strftime("%d-%m-%Y %I:%M %p"),
+        'created_at': ist_created_at.strftime('%d-%m-%Y %I:%M %p'),
         'read': new_notification.read,
         'type': new_notification.type,
     }
 
-    # Emit the notification in real-time to the user's room
     socketio.emit('new_notification', notification_data, room=str(user_id))
 
     return notification_data
