@@ -1,0 +1,33 @@
+{% for user in users %}
+<tr class="bg-light border-bottom">
+  <td><span class="badge bg-secondary">{{ loop.index }}</span></td>
+  <td class="fw-semibold">{{ user.username }}</td>
+  <td>{{ user.email }}</td>
+  <td>
+    <span class="badge {{ 'bg-danger' if user.role == 'admin' else 'bg-info text-dark' }}">
+      {{ user.role.title() }}
+    </span>
+  </td>
+  <td>
+    {% if user.id in online_users %}
+      <span class="badge bg-success" title="Last seen: {{ user.last_seen|date('%Y-%m-%d %H:%M:%S') }}">
+        <i class="bi bi-circle-fill me-1 text-white small"></i> Active
+      </span>
+    {% else %}
+      <span class="badge bg-secondary" title="Last seen: {{ user.last_seen|date('%Y-%m-%d %H:%M:%S') }}">
+        Inactive
+      </span>
+    {% endif %}
+  </td>
+  <td>
+    <form action="/admin/users/delete/{{ user.id }}" method="POST"
+          onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?')"
+          class="m-0">
+      <button type="submit" class="btn btn-sm btn-danger px-3 shadow-sm delete-btn"
+              data-bs-toggle="tooltip" title="Delete User">
+        <i class="bi bi-trash3-fill me-1"></i> Delete
+      </button>
+    </form>
+  </td>
+</tr>
+{% endfor %}

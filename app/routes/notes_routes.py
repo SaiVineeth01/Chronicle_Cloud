@@ -184,3 +184,27 @@ def reject_note(note_id):
     db.session.commit()
     flash("Note rejected and deleted.", "warning")
     return redirect(url_for('notes.moderate_notes'))
+
+@notes_bp.route('/view_notes/search')
+@login_required
+def search_view_notes():
+    query = request.args.get('q', '').strip().lower()
+
+    if current_user.role == 'admin':
+        notes = Note.query.order_by(Note.created_at.desc()).all()
+    else:
+        notes = Note.query.filter_by(approved=True).order_by(Note.created_at.desc()).all()
+
+    # Optional: Prioritize admin-authored notes
+    notes = sorted(notes, key=lambda note: 0 if note.user.role == 'admin' else 1)
+
+    # Filter in Python
+    filtered_notes = [
+        note for note in notes
+        if query in (note.title or '').lower()
+        or query in (note.category or '').lower()
+        or query in (note.user.username or '').lower()
+    ]
+
+    return render_template('notes.html', notes=filtered_notes, query=query)
+

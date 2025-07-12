@@ -1,154 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chronicle Cloud</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css?v=1.0.3">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css?v=1.0.3" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-      <a class="navbar-brand">Chronicle Cloud</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="/dashboard">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="/view_blogs">Blogs</a></li>
-          <li class="nav-item"><a class="nav-link" href="/view_notes">Notes</a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/dashboard">Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/users">Users</a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/settings">Settings</a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/analytics">Analytics</a></li>
-          <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
-        </ul>
-      </div>
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold fs-4">Chronicle Cloud</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav gap-2">
+        <li class="nav-item"><a class="nav-link" href="/dashboard">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/view_blogs">Blogs</a></li>
+        <li class="nav-item"><a class="nav-link" href="/view_notes">Notes</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/dashboard">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/admin/users">Users</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/settings">Settings</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/analytics">Analytics</a></li>
+        <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <main class="container mt-5">
-    <div class="container py-5">
-      <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary"><i class="bi bi-people-fill me-2"></i>User Management</h2>
-        <form class="d-flex" method="GET" action="/admin/users">
-          <input type="text" name="q" class="form-control me-2" placeholder="Search users...">
-          <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
-        </form>
-      </div>
+<!-- Main -->
+<main class="container mt-5">
+  <div class="container py-5">
 
-      <!-- User Table -->
-      <div class="card shadow border-0">
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle text-center">
-              <thead class="table-light">
-                <tr>
-                  <th>#</th>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for user in users %}
-                <tr>
-                  <td><span class="badge bg-secondary">{{ loop.index }}</span></td>
-                  <td class="fw-semibold">{{ user.username }}</td>
-                  <td>{{ user.email }}</td>
-                  <td>
-                    <span class="badge {{ 'bg-danger' if user.role == 'admin' else 'bg-info' }}">
-                      {{ user.role.title() }}
-                    </span>
-                  </td>
-                  <td>
-  {% if user.id in online_users %}
-    <span class="badge bg-success">Active</span>
-  {% else %}
-    <span class="badge bg-secondary">Inactive</span>
-  {% endif %}
-</td>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold text-primary d-flex align-items-center">
+        <i class="bi bi-people-fill me-2"></i>User Management
+        {% if online_users %}
+          <span class="badge bg-success ms-3 animate__animated animate__pulse">
+            🟢 {{ online_users|length }} Online
+          </span>
+        {% endif %}
+      </h2>
+      <form class="d-flex" onsubmit="return false;">
+        <input type="text" name="q" class="form-control me-2 shadow-sm" placeholder="Search users..." />
+        <button class="btn btn-outline-primary shadow-sm" type="submit" disabled><i class="bi bi-search"></i></button>
+      </form>
+    </div>
 
-                  <td>
-                    <div class="d-flex justify-content-center gap-3">
-                      
-                      <form action="/admin/users/delete/{{ user.id }}" method="POST"
-                            onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?')"
-                            class="m-0">
-                        <button type="submit"
-                                class="btn btn-sm btn-danger d-flex align-items-center gap-1 px-3 shadow-sm"
-                                data-bs-toggle="tooltip" title="Delete User">
-                          <i class="bi bi-trash3-fill"></i> <span>Delete</span>
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination -->
-          <nav aria-label="User pagination">
-            <ul class="pagination justify-content-center mt-4">
-              <li class="page-item disabled"><a class="page-link">Previous</a></li>
-              <li class="page-item active"><a class="page-link" href="#">1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item"><a class="page-link" href="#">Next</a></li>
-            </ul>
-          </nav>
+    <!-- User Table -->
+    <div class="card shadow rounded-4 border-0 bg-white">
+      <div class="card-body p-4">
+        <div class="table-responsive rounded-3">
+          <table class="table table-hover align-middle text-center mb-0 rounded-3">
+            <thead class="table-primary rounded-3">
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="user-table-body">
+              {% include 'admin/_user_rows.html' %}
+            </tbody>
+          </table>
         </div>
+
+        <!-- Pagination (optional) -->
+        <nav aria-label="User pagination" class="mt-4">
+          <ul class="pagination justify-content-center">
+            <li class="page-item disabled"><a class="page-link">Previous</a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+          </ul>
+        </nav>
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
-  <footer class="bg-dark text-white text-center py-3">
-    <p>Chronicle Cloud &copy; 2025</p>
-  </footer>
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0">Chronicle Cloud &copy; 2025</p>
+</footer>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const tooltipList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipList.forEach(el => new bootstrap.Tooltip(el));
-  </script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const tooltipList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipList.forEach(el => new bootstrap.Tooltip(el));
 
-  <!-- Styling -->
-  <style>
-    .table tbody tr:hover {
-      background-color: #f8f9fa;
-      transition: background-color 0.2s ease-in-out;
+  // Live search
+  const searchInput = document.querySelector('input[name="q"]');
+  const tableBody = document.getElementById('user-table-body');
+
+  searchInput.addEventListener('input', async () => {
+    const query = searchInput.value.trim();
+    try {
+      const response = await fetch(`/admin/search_users?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const html = await response.text();
+        tableBody.innerHTML = html;
+      }
+    } catch (err) {
+      console.error('Search error:', err);
     }
-    .edit-btn, .delete-btn {
-      transition: all 0.3s ease;
-      border-radius: 50px;
-      font-weight: 500;
-    }
-    .edit-btn:hover {
-      background-color: #ffc107 !important;
-      color: #212529;
-      box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
-      transform: translateY(-1px);
-    }
-    .delete-btn:hover {
-      background-color: #dc3545 !important;
-      color: white;
-      box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
-      transform: translateY(-1px);
-    }
-    .btn i {
-      font-size: 1rem;
-    }
-    .btn span {
-      display: inline-block;
-    }
-  </style>
+  });
+
+  // Optional: Auto-refresh
+  // setInterval(() => { location.reload(); }, 30000);
+</script>
+
+<!-- Styling -->
+<style>
+  .table tbody tr:hover {
+    background-color: #eef4ff !important;
+    transition: 0.3s ease;
+  }
+  .delete-btn {
+    transition: all 0.3s ease;
+    border-radius: 30px;
+    font-weight: 500;
+  }
+  .delete-btn:hover {
+    background-color: #c82333 !important;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    transform: translateY(-1px);
+  }
+  .btn i {
+    font-size: 1rem;
+  }
+  .btn span {
+    display: inline-block;
+  }
+  .card {
+    backdrop-filter: blur(10px);
+  }
+</style>
 </body>
 </html>

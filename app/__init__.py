@@ -1,11 +1,12 @@
 import eventlet
 eventlet.monkey_patch()
+
 import os
 import logging
 from datetime import datetime
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, user_logged_in, user_logged_out
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
@@ -20,11 +21,13 @@ socketio = SocketIO(cors_allowed_origins="*")
 login_manager = LoginManager()
 migrate = Migrate()
 
+# ✅ Global set to store currently online user IDs
+online_users = set()
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
-    # ✅ Read from environment variables (already loaded in main.py)
+    # ✅ Read from environment variables
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     db_url = os.getenv("DATABASE_URL")
 
@@ -56,7 +59,7 @@ def create_app():
     app.logger.addHandler(logging.StreamHandler())
     app.logger.setLevel(logging.INFO)
 
-    # ✅ Before request: Maintenance mode
+    # ✅ Maintenance mode check
     from app.controllers.admin_controller import get_settings
 
     @app.before_request
@@ -65,6 +68,7 @@ def create_app():
         if settings.maintenance_mode and not (request.endpoint and request.endpoint.startswith('admin.')):
             return render_template('maintenance.html'), 503
 
+    # ✅ Update last seen on every request
     @app.before_request
     def update_last_seen():
         if current_user.is_authenticated and hasattr(current_user, 'last_seen'):
@@ -74,7 +78,7 @@ def create_app():
             except Exception as e:
                 app.logger.warning(f"Could not update last_seen: {e}")
 
-    # ✅ Register blueprints
+    # ✅ Register Blueprints
     from app.routes import (
         auth_routes, main_routes, dashboard_routes, content_routes, blog_routes,
         home_routes, files_routes, search_routes, upload_routes, admin_routes,
@@ -94,39 +98,54 @@ def create_app():
     for bp in all_blueprints:
         app.register_blueprint(bp)
 
-    # ✅ Jinja filter
+    # ✅ Jinja date formatting filter
     def format_date(value, format='%Y-%m-%d'):
         if isinstance(value, datetime):
             return value.strftime(format)
         return value
     app.jinja_env.filters['date'] = format_date
 
-    # ✅ Inject settings into all templates
+    # ✅ Inject global site settings into all templates
     @app.context_processor
     def inject_site_settings():
         from app.models import Settings
         return {'settings': Settings.query.first()}
 
+    # ✅ Make online_users globally accessible
+    app.online_users = online_users
+
     return app
 
 
-# Flask-Login user loader
+# ✅ User loader for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     from app.models.user import User
     return User.query.get(int(user_id))
 
 
-# ✅ SocketIO events
+# ✅ Track login/logout to update online_users
+@user_logged_in.connect
+def when_user_logged_in(sender, user):
+    online_users.add(user.id)
+    print(f"✅ {user.username} logged in → ACTIVE")
+
+@user_logged_out.connect
+def when_user_logged_out(sender, user):
+    if user and user.id in online_users:
+        online_users.remove(user.id)
+        print(f"🚫 {user.username} logged out → INACTIVE")
+
+
+# ✅ SocketIO events (optional)
 @socketio.on('connect')
 def handle_connect():
-    print('✅ Client connected')
-
+    print('✅ SocketIO client connected')
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print('🚫 Client disconnected')
+    print('🚫 SocketIO client disconnected')
 
 
-# Exported symbols
+# ✅ Exported symbols
 __all__ = ['create_app', 'db', 'migrate']

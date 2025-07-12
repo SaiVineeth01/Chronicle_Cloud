@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.models import User, Note, Blog, Settings
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from app.models import User, Note, Blog, Settings, Testimonial, Activity
 from app import db
 from flask_login import login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash
-from app.models import Testimonial, Activity
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -63,7 +63,7 @@ def logout():
 
 # ---------------- Dashboard & Analytics ----------------
 
-@admin_bp.route('/dashboard') 
+@admin_bp.route('/dashboard')
 @login_required
 def admin_dashboard():
     if not current_user.is_admin():
@@ -71,18 +71,13 @@ def admin_dashboard():
         return redirect(url_for('admin.admin_login'))
 
     user_count = User.query.count()
-    
-    
     testimonial_count = Testimonial.query.count()
     recent_testimonials = Testimonial.query.order_by(Testimonial.created_at.desc()).limit(5).all()
-    
     activity_count = Activity.query.count()
     recent_activities = Activity.query.order_by(Activity.timestamp.desc()).limit(5).all()
 
     return render_template('admin/admin_dashboard.html',
                            user_count=user_count,
-                           
-                           
                            testimonial_count=testimonial_count,
                            recent_testimonials=recent_testimonials,
                            activity_count=activity_count,
@@ -106,7 +101,6 @@ def analytics():
     recent_blog = Blog.query.order_by(Blog.created_at.desc()).first()
     recent_note = Note.query.order_by(Note.created_at.desc()).first()
 
-    # ✅ Add testimonial and activity stats
     testimonial_count = Testimonial.query.count()
     activity_count = Activity.query.count()
 
@@ -122,7 +116,6 @@ def analytics():
         "testimonial_count": testimonial_count,
         "activity_count": activity_count
     })
-
 
 # ---------------- Settings ----------------
 
@@ -147,7 +140,7 @@ def settings():
             settings.signup_enabled = form.get('signup_enabled') == 'true'
             settings.maintenance_mode = form.get('maintenance_mode') == 'true'
             settings.moderation_required = form.get('moderation_required') == 'true'
-            settings.email_notifications = form.get('email_notifications') == 'true'  # ✅ Important line
+            settings.email_notifications = form.get('email_notifications') == 'true'
             settings.admin_email = form.get('admin_email')
 
             db.session.commit()
@@ -160,7 +153,6 @@ def settings():
 
     return render_template('admin/settings.html', settings=settings)
 
-
 # ---------------- User Management ----------------
 
 @admin_bp.route('/users')
@@ -171,7 +163,13 @@ def users():
         return redirect(url_for('admin.admin_login'))
 
     users = User.query.all()
-    return render_template('admin/users.html', users=users)
+
+    # Users active in last 30 seconds
+    now = datetime.utcnow()
+    threshold = now - timedelta(seconds=30)
+    online_users = [user.id for user in users if user.last_seen and user.last_seen >= threshold]
+
+    return render_template('admin/users.html', users=users, online_users=online_users)
 
 @admin_bp.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
 @login_required
@@ -215,3 +213,24 @@ def delete_user(user_id):
         flash(f'Error: {str(e)}', 'danger')
 
     return redirect(url_for('admin.users'))
+
+@admin_bp.route('/search_users')
+@login_required
+def search_users():
+    if not current_user.is_admin():
+        return '', 403
+
+    q = request.args.get('q', '').strip()
+
+    if q:
+        users = User.query.filter(
+            (User.username.ilike(f'%{q}%')) | (User.email.ilike(f'%{q}%'))
+        ).all()
+    else:
+        users = User.query.all()
+
+    now = datetime.utcnow()
+    threshold = now - timedelta(seconds=30)
+    online_users = [user.id for user in users if user.last_seen and user.last_seen >= threshold]
+
+    return render_template('admin/_user_rows.html', users=users, online_users=online_users)
