@@ -1,23 +1,27 @@
 import eventlet
-eventlet.monkey_patch()  # Must be at the top before importing anything else
+eventlet.monkey_patch()
 
-from app import create_app, db, socketio
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from flask_migrate import Migrate
+from app import create_app, db, socketio
 
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app
+# Create app
 app = create_app()
+migrate = Migrate(app, db)
 
-# Create tables if not present (safe in app context)
+# Create DB tables if not already there
 with app.app_context():
     db.create_all()
 
+# ✅ Run differently depending on environment
 if __name__ == '__main__':
-    print("✅ Flask app created")
-    print("🚀 Starting SocketIO server at http://localhost:5000")
-
-    # Start server using Eventlet worker
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    if os.environ.get("RENDER", "").lower() == "true":
+        print("🚀 Render production mode. Gunicorn will handle running the app.")
+    else:
+        print("✅ Local development mode")
+        print("🚀 Starting SocketIO server at http://localhost:5000")
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
