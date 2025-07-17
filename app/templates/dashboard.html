@@ -191,25 +191,32 @@ height: 100%;
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#"><i class="fas fa-cloud"></i> {{ settings.site_name if settings else 'ChronicleCloud' }}</a>
+      <a class="navbar-brand" style="color:#7A1CAC
+;" href="#"><i class="fas fa-cloud"></i> {{ settings.site_name if settings else 'ChronicleCloud' }}</a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 text-center">
-          <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.notes') }}">Notes</a></li>
+          <li class="nav-item"><a class="nav-link active" style="color:#C6DE41
+;" href="#">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('main.notes') }}">Notes</a></li>
 
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.blogs') }}">Blogs</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('main.blogs') }}">Blogs</a></li>
 
-<li class="nav-item"><a class="nav-link" href="{{ url_for('ai.keyword_page') }}">AI Keyword Tool</a></li>
+<li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('ai.keyword_page') }}">AI Keyword Tool</a></li>
 
-<li class="nav-item"><a class="nav-link" href="{{ url_for('ai.sentiment') }}">AI Sentiment</a></li>
+<li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('ai.sentiment') }}">AI Sentiment</a></li>
 
 
 <li class="nav-item">
-  <a class="nav-link" href="{{ url_for('home.nlp_tools') }}">🔍 Try NLP Tools</a>
+  <a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('home.nlp_tools') }}">🔍 Try NLP Tools</a>
 </li>
 
 
@@ -218,12 +225,18 @@ height: 100%;
 
 
 
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.upload') }}">Files</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.notifications') }}">Notifications</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users') }}">Users</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.admin_login') }}">Admin Login</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.settings') }}">Settings</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.analytics') }}">Analytics</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('main.upload') }}">Files</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('main.notifications') }}">Notifications</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('admin.users') }}">Users</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('admin.admin_login') }}">Admin Login</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('admin.settings') }}">Settings</a></li>
+          <li class="nav-item"><a class="nav-link" style="color:#C6DE41
+;" href="{{ url_for('admin.analytics') }}">Analytics</a></li>
 </a>
 
 

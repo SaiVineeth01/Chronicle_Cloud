@@ -57,6 +57,7 @@ def check_toxicity():
     try:
         text = request.json.get('text', '')
         result = detect_toxicity(text)
-        return jsonify({'toxic': result})
+        return jsonify({'toxicity': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
