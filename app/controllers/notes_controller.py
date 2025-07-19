@@ -7,7 +7,7 @@ def create_note(title, category, due_date, content):
         new_note = Note(
             title=title,
             category=category,
-            due_date=datetime.strptime(due_date, '%Y-%m-%d') if due_date else None,
+            due_date=datetime.strptime(due_date, '%d-%m-%Y') if due_date else None,
             content=content
         )
         

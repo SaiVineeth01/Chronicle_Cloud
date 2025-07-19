@@ -11,7 +11,9 @@ from datetime import datetime
 files_bp = Blueprint('files_bp', __name__, template_folder='../templates')
 
 # Constants
-UPLOAD_FOLDER = 'C:\\Users\\hh\\Chronicle_Cloud\\app\\static\\uploads'
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, '..', 'static', 'uploads')
+
 ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'txt'}
 
 # Check file extension
@@ -76,7 +78,9 @@ def upload_file():
 @login_required
 def download_file(file_id):
     file = File.query.get_or_404(file_id)
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    
+    # Make sure we use the correct path
+    filepath = os.path.join('C:\\Users\\hh\\Chronicle_Cloud\\app\\static', file.filepath)
 
     if not os.path.exists(filepath):
         flash('File not found on the server.', 'danger')
@@ -84,6 +88,7 @@ def download_file(file_id):
 
     log_activity(current_user.id, "Downloaded File", f'File \"{file.filename}\" downloaded.')
     return send_file(filepath, as_attachment=True)
+
 
 # Route: Delete file
 @files_bp.route('/delete-file/<int:file_id>', methods=['POST'])

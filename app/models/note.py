@@ -26,3 +26,7 @@ class Note(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+# ✅ Property for formatted created date
+    @property
+    def created_local(self):
+        return self.created_at.strftime('%d-%m-%Y') if self.created_at else 'N/A'

@@ -15,13 +15,13 @@ blog_bp = Blueprint('blogs', __name__)
 # View all blogs
 @blog_bp.route('/view_blogs')
 def view_blogs():
-    blogs = Blog.query.all()
+    blogs = Blog.query.order_by(Blog.created_at.desc()).all()
     return render_template('view_blogs.html', blogs=blogs)
 
 # Alternative route to blogs page
 @blog_bp.route('/blogs')
 def blogs_page():
-    blogs = Blog.query.all()
+    blogs = Blog.query.order_by(Blog.created_at.desc()).all()
     return render_template('blogs.html', blogs=blogs)
 
 # Render blog creation form

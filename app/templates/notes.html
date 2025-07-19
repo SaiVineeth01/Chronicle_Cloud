@@ -181,7 +181,8 @@
               <div class="note-meta mb-2">
                 <p><strong>📁 Category:</strong> {{ note.category }}</p>
                 <p><strong>📅 Due:</strong> {{ note.due_date }}</p>
-                <p><strong>🕒 Created:</strong> {{ note.created_at.strftime('%d-%m-%Y') }}</p>
+                <p><strong>🕒 Created:</strong> {{ note.created_local }}</p>
+
               </div>
               <div class="note-content">{{ note.content|safe }}</div>
               <button class="read-more-btn" onclick="toggleReadMore(this)">Read More</button>
