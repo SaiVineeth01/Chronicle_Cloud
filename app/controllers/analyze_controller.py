@@ -1,70 +1,72 @@
 import os
 import re
-from langdetect import detect
-from spellchecker import SpellChecker
-import spacy
 import joblib
-from sklearn.feature_extraction.text import CountVectorizer
+import spacy
+from textblob import TextBlob
+from langdetect import detect
+from flask import request, jsonify
 from sklearn.decomposition import LatentDirichletAllocation
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np  # in case some outputs are numpy types
 
-# Load spaCy model and spell checker
+# Load spaCy English model for entity recognition
 nlp = spacy.load("en_core_web_sm")
-spell = SpellChecker()
 
-# Base dir
-base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Load models from models/ folder
+base_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Load models
-toxicity_model = joblib.load(os.path.join(base_dir, 'models', 'toxicity_model.pkl'))
-tox_vectorizer = joblib.load(os.path.join(base_dir, 'models', 'tox_vectorizer.pkl'))
+emo_model, emo_vectorizer, emo_label_encoder = joblib.load(
+    os.path.join(base_dir, '..', 'models', 'emotion_model.pkl')
+)
 
-emotion_model = joblib.load(os.path.join(base_dir, 'models', 'emotion_model.pkl'))
-emo_vectorizer = joblib.load(os.path.join(base_dir, 'models', 'vectorizer.pkl'))
-label_to_emotion = {
-    0: "joy",
-    1: "sadness",
-    2: "anger",
-    3: "fear",
-    4: "love",
-    5: "surprise",
-    6: "disgust",
-    7: "trust",
-    8: "anticipation",
-    9: "neutral"
-}
+tox_model, tox_vectorizer = joblib.load(
+    os.path.join(base_dir, '..', 'models', 'toxicity_model.pkl')
+)
 
-
-# Helpers
+# --- Utility Functions ---
 def clean_text(text):
-    return re.sub(r'[^a-zA-Z\s]', '', text.lower().strip())
+    return re.sub(r"[^a-zA-Z\s]", "", text.lower().strip())
 
-# NLP Tools
+def to_serializable(val):
+    if hasattr(val, 'tolist'):
+        return val.tolist()
+    elif isinstance(val, (np.integer, np.floating)):
+        return val.item()
+    return val
+
+# --- Language Detection ---
 def detect_language(text):
     return detect(text)
 
+# --- Entity Extraction ---
 def extract_entities(text):
     doc = nlp(text)
     return [{"text": ent.text, "label": ent.label_} for ent in doc.ents]
 
+# --- Spelling Correction ---
 def correct_spelling(text):
-    words = text.split()
-    corrected = [spell.correction(word) or word for word in words]
-    return " ".join(corrected)
+    blob = TextBlob(text)
+    return str(blob.correct())
 
-def detect_toxicity(text):
-    cleaned = clean_text(text)
-    X = tox_vectorizer.transform([cleaned])
-    return "Toxic" if int(toxicity_model.predict(X)[0]) == 1 else "Non-Toxic"
-
+# --- Emotion Detection ---
 def detect_emotion(text):
     cleaned = clean_text(text)
     X = emo_vectorizer.transform([cleaned])
-    label = int(emotion_model.predict(X)[0])
-    return label_to_emotion.get(label, "unknown")
+    label_idx = int(emo_model.predict(X)[0])  # Cast to Python int
+    emotion = emo_label_encoder.inverse_transform([label_idx])[0]
+    return str(emotion)
 
+# --- Toxicity Detection ---
+def detect_toxicity(text):
+    cleaned = clean_text(text)
+    X = tox_vectorizer.transform([cleaned])
+    prediction = tox_model.predict(X)[0]
+    return str(prediction)  # e.g., "toxic", "non-toxic"
+
+# --- Topic Modeling ---
 def extract_topics(text, n_topics=1, n_words=5):
     cleaned = clean_text(text)
-    vectorizer = CountVectorizer(stop_words='english')
+    vectorizer = CountVectorizer(stop_words='english', ngram_range=(1, 2))
     X = vectorizer.fit_transform([cleaned])
     lda = LatentDirichletAllocation(n_components=n_topics, random_state=42)
     lda.fit(X)
@@ -74,3 +76,24 @@ def extract_topics(text, n_topics=1, n_words=5):
         top_terms = [terms[i] for i in topic.argsort()[-n_words:][::-1]]
         topics.append({"Topic": f"Topic {idx + 1}", "Keywords": top_terms})
     return topics
+
+# --- Flask Route Logic (optional if used directly) ---
+def analyze_text_controller():
+    data = request.get_json()
+    text = data.get('text', '')
+
+    if not text:
+        return jsonify({"error": "Text input is required."}), 400
+
+    result = {
+        "emotion": detect_emotion(text),
+        "toxicity": detect_toxicity(text),
+        "language": detect_language(text),
+        "entities": extract_entities(text),
+        "topics": extract_topics(text),
+        "corrected": correct_spelling(text)
+    }
+
+    # Ensure everything is serializable
+    result = {k: to_serializable(v) for k, v in result.items()}
+    return jsonify(result)

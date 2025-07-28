@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify 
 from app.controllers.analyze_controller import (
     detect_language, extract_entities, correct_spelling,
     detect_toxicity, detect_emotion, extract_topics
@@ -60,4 +60,3 @@ def check_toxicity():
         return jsonify({'toxicity': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-

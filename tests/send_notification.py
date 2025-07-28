@@ -54,17 +54,17 @@ def send_notification_to_user(user_id, message, notif_type='info'):
 # Example usage
 if __name__ == '__main__':
     send_notification_to_user(
-        3,
-        "📬 Hi Pavan!!! You have seminar on Monday! Be ready.",
+        1,
+        "📬 Hi Honey!!! You have seminar on Monday! Be ready.",
         "info"
     )
     send_notification_to_user(
-        3,
+        1,
         "🚀 Successfully uploaded the blog.",
         "success"
     )
     send_notification_to_user(
-        3,
-        "🚨 Hey Pavan!",
+        1,
+        '🚨 Hey Honey! Don\'t paste links that start with "http://". Thank you!',
         "warning"
     )
